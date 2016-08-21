@@ -48,6 +48,7 @@ BOOT_BIN	=boot/boot.bin
 KERNEL_BIN	=kernel/kernel.bin
 KERNEL_ELF	=kernel/kernel.elf
 KERNEL		=$(KERNEL_BIN)
+FDA_IMG		=boot.img
 
 %.s.o : %.s
 	$(AS) $(AS_FLAGS) -o $@ $< > /dev/null
@@ -66,9 +67,9 @@ default : run
 all : boot.img
 
 run : all
-	$(QEMU) -m 16 -fda boot.img -boot a
+	$(QEMU) -m 16 -fda $(FDA_IMG) -boot a
 
-boot.img : $(BOOT_BIN)
+$(FDA_IMG) : $(BOOT_BIN)
 	$(CAT) $(BOOT_BIN) > $@
 
 Image : $(KERNEL_BIN)
@@ -78,5 +79,6 @@ $(BOOT_BIN) : boot/boot.s.o
 	$(LD) $(LD_FLAGS) -o /tmp/tmp.out.$$ $<
 	$(OBJCOPY) -O binary -R .note -R .comment -S /tmp/tmp.out.$$ $@
 clean :
-	$(RM) $(KERN_OBJS) $(BOOT_BIN) $(KERNEL_BIN) $(KERNEL_ELF)
+	$(RM) $(KERN_OBJS) $(BOOT_BIN) $(KERNEL_BIN) $(KERNEL_ELF) $(FDA_IMG) \
+		*.o boot/*.o
 
