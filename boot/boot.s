@@ -1,0 +1,231 @@
+
+.text
+.code16
+.global	_start
+
+_start:
+	jmp	entry
+
+entry:
+	movw	$0x07C0, %ax
+	movw	%ax, %ds
+	movw	$0x9000, %ax
+	movw	%ax, %es
+	movw	$256, %cx
+	subw	%si, %si
+	movw	%si, %di
+	rep
+	movsw
+	ljmp	$0x9000, $go	# the low address (0x00000~0x80000) will be
+				# used for kernel. so let us copy our boot.bin
+				# to high address, to protect boot.bin from
+				# covered by loaded kernel. same as linux-0.11
+
+go:
+	movw	%ax, %ds
+	movw	%ax, %ss
+	movw	$0x7DFC, %sp
+	movw	$msg_boot, %si
+	call	print
+
+read_setup:			# only boot sector is not enough
+	call	read_sects	# we need setup sects for more functions
+	#cmpw	$0, setup
+	#jnz	setup
+	jmp	setup
+	pushw	%cs
+	popw	%ds
+	movw	$msg_error, %si
+	call	print
+	jmp	die
+
+read_sects:
+	movw	$0x7E00, %bx	# the sector buffer
+	xorw	%ax, %ax
+	movw	%ax, %di
+	movw	%ax, %es	# In some (much) version of BIOS, they
+	movw	%ax, %ds	# read sector to 0:%bx instead of %es:%bx
+	cld			# So first, we read the data in sector
+				# to a low address buffer (0x7E00) templately,
+				# and then move it to the correct address
+				# which caller given (%es:%bx)
+read_next:
+#delay_down:
+#	movw	$0x07FF, %ax
+#delay_down0:
+#	movw	$0x07FF, %cx
+#delay_down1:
+#	loop	delay_down1
+#	dec	%ax
+#	jnz	delay_down0
+#delay_down_end:
+	movw	%cs:sect_nr, %ax	# %ax is LBA
+	incw	%cs:sect_nr
+	movw	%bx, %si		# %si=%bx=0x7E00
+	call	read_sect
+	movw	$256, %cx
+	pushw	%es
+	movw	%cs:dest_sel, %ax
+	movw	%ax, %es
+	rep			# copy from buffer to correct address
+	movsw			# and %di will be increased to next address
+	cmpw	$0xFE00, %di	# but, if %di is bigger than segment size,
+	jb	di_not_too_much	# increase %di will cause %di back to 0 again
+	addw	$0xFE00, %cs:dest_sel	# to avoid this, increase dest_sel,
+	subw	$0xFE00, %di		# and decrease %di, make dest_sel:%di
+					# back to old address, but %di is
+					# avaliable for use again
+	#jmp	halt
+di_not_too_much:
+	popw	%es
+	movw	$0x0E2E, %ax
+	int	$0x10			# print an progress dot every sector
+	movw	%cs:final_sect_nr, %ax	# read from sect_nr to final_sect_nr,
+	cmpw	%ax, %cs:sect_nr	# and NOT contains final_sect_nr
+	jb	read_next
+	movw	$0x0E0D, %ax
+	int	$0x10
+	movb	$0x0A, %al
+	int	$0x10
+	ret
+
+read_sect:		# LBA is given in %ax
+	movb	$36, %dl
+	divb	%dl
+	movb	%al, %ch
+	shrw	$8, %ax	# = movb %al, %ah + movb $0, %al
+	movb	$18, %dl
+	divb	%dl
+	movb	%ah, %cl
+	incb	%cl		# compute CHS from the given LBA
+	movb	$0x00, %dl	# our boot device is floppya
+	movw	$0x0201, %ax
+read_again:
+	#cmpw	$0x1000, %cs:dest_sel
+	#je	err
+	#call	print_hex
+	int	$0x13
+	jc	read_again	# if read boot device failed, try again
+	ret			# but while it do not work any way, still all
+				# right ... it is the same as jmp die
+
+/*
+print_hex:
+	movb	%cl, %al
+	pushw	$print_hex_high_of_cl
+	andb	$0x0F, %al
+print_a_hex_char:
+	cmpb	$9, %al
+	jb	hex_number_below_9
+	addb	$'A' - 10 - '0', %al
+hex_number_below_9:
+	addb	$'0', %al
+	movb	$0x0E, %ah
+	int	$0x10
+	ret
+print_hex_high_of_cl:
+	jmp	die
+	testw	$0xFFF0, %cx
+	jz	print_hex_done
+	movb	%cl, %al
+	shrb	$4, %al
+	call	print_a_hex_char
+	shrw	$8, %cx
+	#testw	%cx, %cx
+	jnz	print_hex
+print_hex_done:
+	ret
+*/
+
+print:
+	movb	$0x0E, %ah
+next_char:
+	lodsb
+	testb	%al, %al
+	jz	print_done
+	int	$0x10
+	jmp	next_char
+print_done:
+	ret
+
+die:	jmp	die
+
+boot_datas:
+msg_boot:	.ascii	"Booting\0"
+msg_error:	.ascii	"ERROR in boot\0"
+
+	.align	2
+sect_nr:	# These three, they are args for read_sects
+	.word	1
+final_sect_nr:
+	.word	4
+dest_sel:
+	.word	0x9020		# behind boot sector
+
+.org	0x1FE, 0x00
+.byte	0x55, 0xAA
+
+setup:
+	#cli
+	#hlt
+	#int	$0x19
+	movw	%cs, %ax
+	movw	%ax, %ds
+	movw	%ax, %es
+#	movw	$msg_setup, %si
+#	call	print
+	movw	$msg_read_kern, %si
+	call	print
+read_kern:
+	pushw	%ds
+	pushw	%es
+	movw	$0x1000, dest_sel
+	movw	$64, final_sect_nr
+	call	read_sects
+	popw	%es
+	popw	%ds
+	#jmp	die
+	jmp	halt
+
+poff:	movw	$0x5301, %ax
+	xorw	%bx, %bx
+	int	$0x15
+	movw	$0x530E, %ax
+	movw	$0x0102, %cx
+	int	$0x15
+	movw	$0x5307, %ax
+	movb	$0x01, %bl
+	movw	$0x0003, %cx
+	int	$0x15
+err:	pushw	%cs
+	popw	%ds
+	movw	$msg_err, %si
+	call	print
+	movb	$0x00, %ah
+	int	$0x16
+reset:	int	$0x19
+coreb:	ljmp	$0xF000, $0xFFF0
+halt:	pushw	%cs
+	popw	%ds
+	movw	$msg_halt, %si
+	call	print
+	cli
+fin:	hlt
+	jmp	fin
+setup_datas:
+#msg_setup:	.ascii	"Succeed in enter setup stage"
+msg_crlf:	.ascii	"\r\n\0"
+msg_read_kern:	.ascii	"Loading kernel\0"
+msg_ucomp_kern:	.ascii	"Uncompressing kernel\0"
+msg_halt:	.ascii	"System halted\0"
+msg_err:	.ascii	"An error occurred during the setup stage\r\n"
+		.ascii	"Press any key to reset\0"
+
+.org	0x7F4, 0x00
+
+special_sym:
+	.ascii	"MATRIXMBR"
+	.byte	0xC3
+	.byte	0x28, 0xA6
+
+.org	0x1000, 0x00
