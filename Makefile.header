@@ -16,6 +16,7 @@ CAT		=cat
 DD		=dd
 RM		=rm -f
 WC		=wc
+AR		=ar
 SUDO		=sudo
 SU		=$(SUDO) su
 MOUNT		=$(SUDO) mount
@@ -24,7 +25,8 @@ SUDODD		=$(SUDO) $(DD)
 QEMU		=qemu-system-$(ARCH)
 BOCHS		=bochsdbg
 
-INCLUDE		=.
+#INCLUDE		=.
+INCLUDE_FLAGS	=$(INCLUDE+-I $(INCLUDE))
 CC_OPTIZIME	=-Ofast
 DEBUG_FLAG	=-g
 CC_WARNNINGS	=-Wall -W -Wno-parentheses -Wno-main -Wno-long-long \
@@ -34,9 +36,9 @@ CC_WARNNINGS	=-Wall -W -Wno-parentheses -Wno-main -Wno-long-long \
 		 -Werror=implicit-function-declaration
 CC_DEFINES	=-D_ARCH=$(ARCH) -D_CROSSC=$(CROSSC) -D_CC=$(CC) \
 		 -D_KERN_MAKE=1 -D_DEBUG=1
-AS_FLAGS	=-a -I $(INCLUDE)
+AS_FLAGS	=-a $(INCLUDE_FLAGS)
 CC_FLAGS	=-c $(CC_OPTIZIME) $(DEBUG_FLAGS) $(CC_FORMATS) \
-		 $(CC_WARNNINGS) $(CC_DEFINES) -I $(INCLUDE)
+		 $(CC_WARNNINGS) $(CC_DEFINES) $(INCLUDE_FLAGS)
 LD_FLAGS	=-N -e _start -Ttext 0 $(DEBUG_FLAG)
 
 

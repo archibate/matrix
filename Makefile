@@ -11,8 +11,9 @@ KERNEL_ELF	=kernel/kernel.elf
 KERNEL		=$(KERNEL_BIN)
 FDA_IMG		=boot.img
 
+default : all
 
-default : run
+.PHONY : clean all run
 
 all : boot.img
 
@@ -25,13 +26,14 @@ $(FDA_IMG) : $(BOOT_BIN) $(KERNEL_BIN)
 #Image : $(KERNEL_BIN)
 #	$(CAT) $< > $@
 
-$(BOOT_BIN) : boot/*
+$(BOOT_BIN) : $(wildcard boot/*)
 	$(MAKE) -r target -C boot/
 
-$(KERNEL_BIN) : kernel/*
+$(KERNEL_BIN) : $(wildcard kernel/* kernel/*/*)
 	$(MAKE) -r target -C kernel/
 
 clean :
 	$(RM) $(FDA_IMG)
 	$(MAKE) -r clean -C boot/
+	$(MAKE) -r clean -C kernel/
 
