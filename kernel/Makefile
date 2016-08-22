@@ -1,6 +1,6 @@
  include	../Makefile.header
 
-KERNEL_OBJS	=start.s.o
+KERNEL_OBJS	=start.s.o init.c.o
 KERNEL_ELF	=kernel.elf
 KERNEL_BIN	=kernel.bin
 KERNEL		=$(KERNEL_BIN)
