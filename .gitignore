@@ -1,11 +1,9 @@
-*.o
-*.elf
 *.out
 *.a
+*.so
+*.tmp
 *.lst
 *.map
-*.tmp
-boot.bin
-boot.img
-bochsout.txt
-
+*.elf
+*.bin
+*.img
