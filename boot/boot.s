@@ -192,15 +192,16 @@ setup:
 read_kern:
 	pushw	%ds
 	pushw	%es
-	movw	$0x1000, dest_sel
+	movw	$0x0800, dest_sel
 	movw	$64, final_sect_nr
 	call	read_sects
 	popw	%es
 	popw	%ds
 	#jmp	die
+jump_into_kern:
 	movw	$msg_jump, %si
 	call	print
-	ljmp	$0x1000, $0
+	ljmp	$0x0800, $0
 	#jmp	halt
 
 poff:	movw	$0x5301, %ax

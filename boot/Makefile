@@ -1,3 +1,4 @@
+SEC_TEXT_ORG	=0
 
  include	../Makefile.header
 

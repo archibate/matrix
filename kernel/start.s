@@ -6,13 +6,19 @@ _start:		# we are loaded at 0x1000:0x0000, still real mode now
 	jmp	rmode_start	# our boot loader do NOT set pmode
 
 .code32
-pmode_start:			# finally, we are in protect mode
+pmode_start:			# now, we are in 0x8000:0x00010000 in pmode
+	movw	$0x0010, %ax
+	movw	%ax, %ds
+	movw	%ax, %es
+	movw	%ax, %ss
+	movw	%ax, %fs
+	movw	%ax, %gs
 	#movl	$0xB8000, %edi	# if we are succeed, we will see
 	#movw	$0x0C03, %ax	# a red heart on Ln 1 Col 1
 	#stosw
 	movl	$0x001FFFF8, %esp	# reserve 8 byte above stack top
 	movl	%esp, %ebp
-	call	init	# a function written in C, used for initialize kernel
+	call	init
 	cli
 	hlt
 
@@ -27,11 +33,11 @@ rmode_start:
 	call	print_bios
 
 copy_gdt:
-	pushw	$0x8000		# set GDT to 0x80000, templately
+	pushw	$0x8000		# set GDT to 0x80000, templately,
 	popw	%es		# we will set it later (in init)
 	#movw	%cs, %ax
 	#movw	%ax, %cx
-	#shrw	$16, %ax	# high 4 bits make %cs:gdt0 out of 0xFFFF,
+	#shrw	$16, %ax	# high 4 bits let %cs:gdt0 out of 0xFFFF,
 				# we need put it into 16~20 bit of GDT
 				# physical address
 	#movw	%ax, gdtr0 + 4	# high 16 bits of GDT 32-bit physical address
@@ -39,14 +45,15 @@ copy_gdt:
 	#addw	$gdt0, %cx
 	#movw	%ax, gdtr0 + 2	# so, wherever our kernel is loaded,
 				# we can always get physical address of GDT
-	pushw	%cs
+	#pushw	%cs
+	pushw	$0
 	popw	%ds
 	xorw	%ax, %ax
 	movw	%ax, %ss
 	movw	%ax, %fs
 	movw	%ax, %gs
 	movw	%ax, %di
-	movw	$gdt0, %si
+	movw	$gdt0, %si	# gdt0 is already added 0x8000 by linker
 	movw	$gdt0_len >> 1, %cx	# gdt0_len should not be odd
 	cld
 	rep
@@ -57,44 +64,48 @@ copy_gdt:
 
 load_gdt:
 	cli
-	lgdt	%cs:gdtr0
+	lgdt	%ds:gdtr0	# %ds is zero
+				# while linking, gdtr0 will be set to
+				# 0x80**, because we specified flag :
+				# -Ttext 0x8000 in Makefile.
 
 load_idt:
-	lidt	%cs:idtr0
+	lidt	%ds:idtr0
 
 	movb	$0xFF, %al
 	outb	%al, $0xA1
 	call	delay
 	movb	$0xFF, %al
-	outb	%al, $0x21	# mark all IRQ of 8295A
+	outb	%al, $0x21
 
-reset_math:			# math coprocessor
+reset_math:
 	movb	$0x00, %al
 	outb	%al, $0xF0
 	call	delay
 	outb	%al, $0xF1
 	call	delay
 
-enable_a20:			# open A20 to access 4GiB memory!
+enable_a20:
 	inb	$0x64, %al
 	call	delay
-	testb	$0x02, %al	# if busy
-	jnz	enable_a20	# wait for keyboard controller, and try again
+	testb	$0x02, %al
+	jnz	enable_a20
 	movb	$0xDF, %al
 	outb	%al, $0x64
 	call	delay
 
 set_cr0_pe:
 	movl	%cr0, %eax
-	orl	$0x00000001, %eax	# CR0 -> PE = 1
+	orl	$0x00000001, %eax
 	movl	%eax, %cr0		# OK!!! pmode now
 
-jump_to_pmode:			# this is same as : ljmp $0x0008, $pmode_start
-	.byte	0x66, 0xEA	# but, it is not work if $pmode_start greater
-	.long	pmode_start + 0x10000	# than 0xFFFF
-	.word	0x0008		# this is because the assembler is still
-				# in real mode (.code16), to use 32-bit opcode,
-				# we have to fill it with .byte, .long etc.
+jump_to_pmode:			# same as : ljmp $0x0008, $pmode_start
+	.byte	0x66, 0xEA	# but, it will be failed  work if
+	.long	pmode_start	# <<-THIS is greater than 0xFFFF.
+	.word	0x0008		# this is because the assembler is in
+				# real mode (.code16), it does not
+				# understand 32-bit opcode. so we use
+				# .byte, .word and .long instead
 				# to create a 32-bit opcode
 
 fin:	hlt

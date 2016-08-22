@@ -10,3 +10,7 @@
 *.old
 *.bin
 *.img
+*.un~
+*~
+*.swp
+*.swo
