@@ -1,18 +1,18 @@
 ###############################################################
-# bochsrc.txt file for DLX Linux disk image.
+# bochsrc file for Matrix disk image.
 ###############################################################
 
 # how much memory the emulated machine will have
 megs: 32
 
-# how fast our CPU is! 6000000 per second!
+# how much instruction per second (speed) our CPU have
 #cpu: count=1, ips=6000000, reset_on_triple_fault=1, ignore_bad_msrs=1
 
 # filename of ROM images
 romimage: file=$BXSHARE/BIOS-bochs-latest #, address=0xf0000
 vgaromimage: file=$BXSHARE/VGABIOS-lgpl-latest
 
-# what disk images will be used 
+# what disk images will be used
 floppya: 1_44=boot.img, status=inserted
 floppyb: 1_44=floppyb.img, status=inserted
 
