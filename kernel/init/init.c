@@ -1,5 +1,7 @@
 #include	"../kernel.h"
 #include	"desc.h"
+#include	"pic.h"
+#include	"../asf.h"
 
 
 void	init(void)	/* we were called from start.s */
@@ -8,9 +10,11 @@ void	init(void)	/* we were called from start.s */
 
 	init_gdt();
 	init_idt();
+	init_pic();
+	io_sti();
 
 	for (;;) {
-		__asm__ ("hlt");
+		io_hlt();
 	}
 }
 
