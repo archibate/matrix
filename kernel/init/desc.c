@@ -17,6 +17,7 @@ void	init_gdt()
 	} __attribute__ ((packed)) gdtr_val = {
 		GDT_MAX * 8 - 1, GDT_PAD
 	};
+	__asm__ ("cli;hlt");
 	__asm__ ("lgdt	%0" :: "m" (gdtr_val));
 	/* %cs, %ds, etc. will be reloaded until move_to_user_mode */
 }
@@ -27,11 +28,13 @@ void	init_idt()
 	int	i;
 	for (i = 0; i < ISR_MAX; i++) {
 		set_gate_desc(IDT_PAPV + i, SYS_CODE_SEL,
-				isr[(i << 1) + 1], 0, DA_IG + DA_DPL0);
+				isr_entry_tab[i],
+				0, DA_IG + DA_DPL0);
 	}
 	for (; i < 256; i++) {
 		set_gate_desc(IDT_PAPV + i, SYS_CODE_SEL,
-				(u_t) isr_default, 0, DA_IG + DA_DPL0);
+				(u_t) isr_default,
+				0, DA_IG + DA_DPL0);
 	}
 
 	static struct	{
@@ -48,9 +51,6 @@ void	isr_default(void)
 {
 	(* (u16 *) 0x000B8002) = 0x0C03;
 }
-
-
-u_t	isr[];
 
 
 void	set_seg_desc(

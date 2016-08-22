@@ -1,6 +1,6 @@
  include	../../Makefile.header
 
-SRV_OBJS	=isr.s.o
+SRV_OBJS	=isr.s.o isr.c.o
 SRV		=srv.a
 
 target : $(SRV)

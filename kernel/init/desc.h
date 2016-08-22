@@ -47,7 +47,8 @@ void	set_gate_desc(		/* 386 Gate Descriptor */
 		u_t	offset,
 		u8	dcount,
 		u16	attr);
-extern u_t	isr[ISR_MAX << 1];	/* defined in isr.s */
+extern u_t	isr_entry_tab[ISR_MAX << 1];
+extern u_t	isr_tab[ISR_MAX << 1];	/* they are defined in isr.s */
 void	isr_default(void);
 
 

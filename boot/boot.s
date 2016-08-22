@@ -62,12 +62,12 @@ read_next:
 #delay_down_end:
 	movw	%cs:sect_nr, %ax	# %ax is LBA
 	incw	%cs:sect_nr
-	movw	%bx, %si		# %si=%bx=0x7E00
 	call	read_sect
 	movw	$256, %cx
 	pushw	%es
 	movw	%cs:dest_sel, %ax
 	movw	%ax, %es
+	movw	%bx, %si		# %si=%bx=0x7E00
 	rep			# copy from buffer to correct address
 	movsw			# and %di will be increased to next address
 	cmpw	$0xFE00, %di	# but, if %di is bigger than segment size,
@@ -233,7 +233,7 @@ setup_datas:
 #msg_setup:	.ascii	"Succeed in enter setup stage"
 msg_read:	.ascii	"Loading kernel\0"
 msg_ucomp:	.ascii	"Uncompressing kernel\0"
-msg_jump:	.ascii	"Now. jump into the kernel"
+msg_jump:	.ascii	"Now jump into the kernel"
 msg_crlf:	.ascii	"\r\n\0"
 msg_halt:	.ascii	"System halted\0"
 msg_err:	.ascii	"An error occurred during the setup stage\r\n"

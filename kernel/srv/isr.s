@@ -9,13 +9,16 @@ isr_route:
 	pushw	%fs
 	pushw	%gs
 	pushal
+
 	movw	%ss, %ax
 	movw	%ax, %ds
 	movw	%ax, %es
 	movw	%ax, %fs
 	movw	%ax, %gs
+
 	movl	48(%esp), %eax	# isr_nr, index number
 	call	*isr_tab(, %eax, 4)
+
 	popal
 	popw	%gs
 	popw	%fs
