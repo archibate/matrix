@@ -1,0 +1,10 @@
+*.o
+*.out
+*.a
+*.so
+*.tmp
+*.lst
+*.map
+*.elf
+*.bin
+*.img
