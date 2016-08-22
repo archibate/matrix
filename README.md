@@ -1,4 +1,3 @@
-# matrix
-Matrix The Operating System
-Created by github user archibate
+# Matrix
+Matrix is an Operating System on i386.
 
