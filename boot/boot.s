@@ -90,11 +90,11 @@ di_not_too_much:
 	int	$0x10
 	ret
 
-read_sect:		# LBA is given in %ax
+read_sect:			# LBA is given in %ax
 	movb	$36, %dl
 	divb	%dl
 	movb	%al, %ch
-	shrw	$8, %ax	# = movb %al, %ah + movb $0, %al
+	shrw	$8, %ax		# = movb %al, %ah + movb $0, %al
 	movb	$18, %dl
 	divb	%dl
 	movb	%ah, %cl
@@ -187,7 +187,7 @@ setup:
 	movw	%ax, %es
 #	movw	$msg_setup, %si
 #	call	print
-	movw	$msg_read_kern, %si
+	movw	$msg_read, %si
 	call	print
 read_kern:
 	pushw	%ds
@@ -198,7 +198,10 @@ read_kern:
 	popw	%es
 	popw	%ds
 	#jmp	die
-	jmp	halt
+	movw	$msg_jump, %si
+	call	print
+	ljmp	$0x1000, $0
+	#jmp	halt
 
 poff:	movw	$0x5301, %ax
 	xorw	%bx, %bx
@@ -227,9 +230,10 @@ fin:	hlt
 	jmp	fin
 setup_datas:
 #msg_setup:	.ascii	"Succeed in enter setup stage"
+msg_read:	.ascii	"Loading kernel\0"
+msg_ucomp:	.ascii	"Uncompressing kernel\0"
+msg_jump:	.ascii	"Now. jump into the kernel"
 msg_crlf:	.ascii	"\r\n\0"
-msg_read_kern:	.ascii	"Loading kernel\0"
-msg_ucomp_kern:	.ascii	"Uncompressing kernel\0"
 msg_halt:	.ascii	"System halted\0"
 msg_err:	.ascii	"An error occurred during the setup stage\r\n"
 		.ascii	"Press any key to reset\0"
@@ -240,5 +244,12 @@ special_sym:
 	.ascii	"MATRIXMBR"
 	.byte	0xC3
 	.byte	0x28, 0xA6
+
+	movw	$0x0E4F, %ax
+	int	$0x10
+	movw	$0x0E4B, %ax
+	int	$0x10
+	cli
+	hlt
 
 .org	0x1000, 0x00
