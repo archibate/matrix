@@ -3,8 +3,14 @@
 *.a
 *.so
 *.tmp
+*.elf
 *.lst
 *.map
-*.elf
+*.bak
+*.old
 *.bin
 *.img
+*.un~
+*~
+*.swp
+*.swo
