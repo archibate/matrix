@@ -20,6 +20,6 @@ $(INIT) : $(wildcard init/*)
 	$(MAKE) -r target -C init/
 
 clean :
-	$(RM) $(KERNEL_OBJS) $(KERNEL_ELF) $(KERNEL_BIN)
+	$(RM) $(KERNEL_OBJS) $(KERNEL_ELF) $(KERNEL_BIN) $(KERNEL_MAP)
 	$(MAKE) -r clean -C init/
 

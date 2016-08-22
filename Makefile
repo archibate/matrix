@@ -27,9 +27,11 @@ $(FDA_IMG) : $(BOOT_BIN) $(KERNEL_BIN)
 #	$(CAT) $< > $@
 
 $(BOOT_BIN) : $(wildcard boot/*)
+#$(BOOT_BIN) : boot/*
 	$(MAKE) -r target -C boot/
 
 $(KERNEL_BIN) : $(wildcard kernel/* kernel/*/*)
+#$(KERNEL_BIN) : kernel/* kernel/*/*
 	$(MAKE) -r target -C kernel/
 
 clean :
