@@ -25,10 +25,11 @@ go:
 	movw	%ax, %ds
 	movw	%ax, %ss
 	movw	$0x7DFC, %sp
+	call	clear_screen
 	movw	$msg_boot, %si
 	call	print
 
-read_setup:			# only boot sector is not enough
+read_setup:			# only the boot sector is not enough
 	call	read_sects	# we need setup sects for more functions
 	#cmpw	$0, setup
 	#jnz	setup
@@ -146,6 +147,18 @@ next_char:
 	int	$0x10
 	jmp	next_char
 print_done:
+	ret
+
+clear_screen:
+	movw	$0x0600, %ax
+	xorw	%cx, %cx
+	movw	$0x184F, %dx
+	movb	$0x07, %bh
+	int	$0x10
+	movb	$0x02, %ah
+	movb	$0x00, %bh
+	xorw	%dx, %dx
+	int	$0x10
 	ret
 
 die:	jmp	die
