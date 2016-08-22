@@ -46,6 +46,7 @@ void	init_idt()
 
 void	isr_default(void)
 {
+	(* (u16 *) 0x000B8002) = 0x0C03;
 }
 
 

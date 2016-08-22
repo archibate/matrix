@@ -1,6 +1,6 @@
  include	../../Makefile.header
 
-INIT_OBJS	=init.c.o desc.c.o
+INIT_OBJS	=init.c.o desc.c.o pic.c.o
 INIT		=init.a
 
 target : $(INIT)

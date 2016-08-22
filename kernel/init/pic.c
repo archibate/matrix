@@ -1,6 +1,7 @@
 #include	"../kernel.h"
 #include	"pic.h"
 #include	"desc.h"
+#include	"../asf.h"
 
 
 void	init_pic()
@@ -14,5 +15,7 @@ void	init_pic()
 	io_outb(0x01, 0x21);
 	io_outb(0x01, 0xA1);
 	io_outb(0xFF, 0x21);
-	io_outb(0xFF, 0xA1);
+	io_outb(0xF8, 0xA1);
 }
+
+

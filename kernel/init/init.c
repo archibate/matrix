@@ -13,6 +13,8 @@ void	init(void)	/* we were called from start.s */
 	init_pic();
 	io_sti();
 
+	__asm__ ("int	$0x30");
+
 	for (;;) {
 		io_hlt();
 	}
