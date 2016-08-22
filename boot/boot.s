@@ -76,7 +76,7 @@ read_next:
 	subw	$0xFE00, %di		# and decrease %di, make dest_sel:%di
 					# back to old address, but %di is
 					# avaliable for use again
-	#jmp	halt
+	jmp	halt
 di_not_too_much:
 	popw	%es
 	movw	$0x0E2E, %ax
