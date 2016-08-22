@@ -1,0 +1,11 @@
+*.o
+*.elf
+*.out
+*.a
+*.lst
+*.map
+*.tmp
+boot.bin
+boot.img
+bochsout.txt
+
