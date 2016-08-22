@@ -72,8 +72,8 @@ run : all
 $(FDA_IMG) : $(BOOT_BIN)
 	$(CAT) $(BOOT_BIN) > $@
 
-Image : $(KERNEL_BIN)
-	$(CAT) $< > $@
+#Image : $(KERNEL_BIN)
+#	$(CAT) $< > $@
 
 $(BOOT_BIN) : boot/boot.s.o
 	$(LD) $(LD_FLAGS) -o /tmp/tmp.out.$$ $<
