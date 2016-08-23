@@ -4,6 +4,7 @@
 
  include	Makefile.header
 
+EDIMG		=./tools/edimg	# a tool to create image with blocks
 
 BOOT_BIN	=boot/boot.bin
 KERNEL_BIN	=kernel/kernel.bin
@@ -21,7 +22,9 @@ run : all
 	$(QEMU) -m 16 -fda $(FDA_IMG) -boot a
 
 $(FDA_IMG) : $(BOOT_BIN) $(KERNEL_BIN)
-	$(CAT) $(BOOT_BIN) $(KERNEL_BIN) > $@
+	#$(CAT) $(BOOT_BIN) $(KERNEL_BIN) > $@
+	$(EDIMG) $@ 1474560 $(BOOT_BIN) 2048 0 \
+		$(KERNEL_BIN) 30720 2048
 
 #Image : $(KERNEL_BIN)
 #	$(CAT) $< > $@
