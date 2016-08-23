@@ -17,7 +17,6 @@ void	init_gdt()
 	} __attribute__ ((packed)) gdtr_val = {
 		GDT_MAX * 8 - 1, GDT_PAD
 	};
-	__asm__ ("cli;hlt");
 	__asm__ ("lgdt	%0" :: "m" (gdtr_val));
 	/* %cs, %ds, etc. will be reloaded until move_to_user_mode */
 }

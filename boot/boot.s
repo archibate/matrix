@@ -97,6 +97,7 @@ read_sect:			# LBA is given in %ax
 	shrw	$8, %ax		# = movb %al, %ah + movb $0, %al
 	movb	$18, %dl
 	divb	%dl
+	movb	%al, %dh
 	movb	%ah, %cl
 	incb	%cl		# compute CHS from the given LBA
 	movb	$0x00, %dl	# our boot device is floppya
@@ -190,10 +191,10 @@ setup:
 	movw	$msg_read, %si
 	call	print
 read_kern:
-	pushw	%ds
-	pushw	%es
 	movw	$0x0800, dest_sel
 	movw	$64, final_sect_nr
+	pushw	%ds
+	pushw	%es
 	call	read_sects
 	popw	%es
 	popw	%ds
