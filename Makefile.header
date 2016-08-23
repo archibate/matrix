@@ -27,7 +27,7 @@ BOCHS		=bochsdbg
 
 #INCLUDE		=.
 INCLUDE_FLAGS	=$(INCLUDE+-I $(INCLUDE))
-CC_OPTIZIME	=-O0#fast
+CC_OPTIZIME	=-Ofast
 DEBUG_FLAG	=-g
 CC_WARNNINGS	=-Wall -Wno-parentheses -Wno-main -Wno-long-long \
 		 -Wno-comment -Wno-unused-parameter -Werror=type-limits \

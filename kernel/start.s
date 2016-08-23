@@ -24,11 +24,11 @@ pmode_start:			# now, we are in 0x8000:0x00010000 in pmode
 
 .code16
 rmode_start:
-	movw	$stack_top, %sp
-	movw	%cs, %ax
-	movw	%ax, %ds
+	xorw	%ax, %ax
+	movw	%ax, %ds	# let linker take care for it
 	movw	%ax, %es
 	movw	%ax, %ss
+	movw	$stack_top, %sp
 	movw	$msg_start, %si
 	call	print_bios
 
