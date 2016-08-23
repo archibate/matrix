@@ -7,7 +7,7 @@
 #define	IDT_PAPV	((u64 *) IDT_PAD)
 #define	GDT_MAX		64
 #define	IDT_MAX		256
-#define	ISR_MAX		1
+#define	ISR_MAX		0x33
 
 #define	ZERO_DESC_SEL	0x0000
 #define	SYS_CODE_SEL	0x0008

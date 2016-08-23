@@ -3,235 +3,256 @@
 .globl	isr_entry_tab
 .globl	isr_tab
 
-isr_route:
-	pushw	%ds
-	pushw	%es
-	pushw	%fs
-	pushw	%gs
-	pushal
+/*
+--------------- 76
+ESP/?		72
+SS/?		68
+EIP		64
+CS		60
+EFL		56
+ERR_CODE/0	52
+ISR_NR		48 <-+
+EAX		44   |
+ECX		40   |
+EDX		36   |
+EBX		32   |
+NEW_ESP		28 --+
+EBP		24
+ESI		20
+EDI		16
+DS		12
+ES		8
+FS		4
+GS		0  <- ESP NOW
+*/
 
-	movw	%ss, %ax
+isr_route:		# the sharing part of all ISRs
+	pushal
+	pushl	%ds	# NOTE : although segment registers are 16-bit,
+	pushl	%es	# but in order to avoid errors,
+	pushl	%fs	# we push them as 32-bit register
+	pushl	%gs
+
+	movw	%ss, %ax	# CPU has set %ss to kernel mode automaticly
 	movw	%ax, %ds
 	movw	%ax, %es
 	movw	%ax, %fs
 	movw	%ax, %gs
 
-	movl	48(%esp), %eax	# isr_nr, index number
+	movl	48(%esp), %eax	# isr_nr - ISR index number
 	call	*isr_tab(, %eax, 4)
 
+	popl	%gs
+	popl	%fs
+	popl	%es
+	popl	%ds
 	popal
-	popw	%gs
-	popw	%fs
-	popw	%es
-	popw	%ds
+	addl	$8, %esp	# skip isr_nr and err_code
 	iretl
 
+	# CPU push 'error code' to stack in some ISRs : 0x08, 0x0A, etc.
+	# and the others do not have.
+	# in these ISRs without 'error code', we (software) push 0 instead.
+
 isr_entry_int0x00:
-	pushw	$0
-	pushw	$0x00
+	pushl	$0
+	pushl	$0x00		# push index, isr_route will deal it
 	jmp	isr_route
 isr_entry_int0x01:
-	pushw	$0
-	pushw	$0x01
+	pushl	$0
+	pushl	$0x01
 	jmp	isr_route
 isr_entry_int0x02:
-	pushw	$0
-	pushw	$0x02
+	pushl	$0
+	pushl	$0x02
 	jmp	isr_route
 isr_entry_int0x03:
-	pushw	$0
-	pushw	$0x03
+	pushl	$0
+	pushl	$0x03
 	jmp	isr_route
 isr_entry_int0x04:
-	pushw	$0
-	pushw	$0x04
+	pushl	$0
+	pushl	$0x04
 	jmp	isr_route
 isr_entry_int0x05:
-	pushw	$0
-	pushw	$0x05
+	pushl	$0
+	pushl	$0x05
 	jmp	isr_route
 isr_entry_int0x06:
-	pushw	$0
-	pushw	$0x06
+	pushl	$0
+	pushl	$0x06
 	jmp	isr_route
 isr_entry_int0x07:
-	pushw	$0
-	pushw	$0x07
+	pushl	$0
+	pushl	$0x07
 	jmp	isr_route
 isr_entry_int0x08:
-	pushw	$0
-	pushw	$0x08
+	pushl	$0x08
 	jmp	isr_route
 isr_entry_int0x09:
-	pushw	$0
-	pushw	$0x09
+	pushl	$0
+	pushl	$0x09
 	jmp	isr_route
 isr_entry_int0x0a:
-	pushw	$0
-	pushw	$0x0a
+	pushl	$0x0a
 	jmp	isr_route
 isr_entry_int0x0b:
-	pushw	$0
-	pushw	$0x0b
+	pushl	$0x0b
 	jmp	isr_route
 isr_entry_int0x0c:
-	pushw	$0
-	pushw	$0x0c
+	pushl	$0x0c
 	jmp	isr_route
 isr_entry_int0x0d:
-	pushw	$0
-	pushw	$0x0d
+	pushl	$0x0d
 	jmp	isr_route
 isr_entry_int0x0e:
-	pushw	$0
-	pushw	$0x0e
+	pushl	$0x0e
 	jmp	isr_route
 isr_entry_int0x0f:
-	pushw	$0
-	pushw	$0x0f
+	pushl	$0
+	pushl	$0x0f
 	jmp	isr_route
 isr_entry_int0x10:
-	pushw	$0
-	pushw	$0x10
+	pushl	$0x10
 	jmp	isr_route
 isr_entry_int0x11:
-	pushw	$0
-	pushw	$0x11
+	pushl	$0
+	pushl	$0x11
 	jmp	isr_route
 isr_entry_int0x12:
-	pushw	$0
-	pushw	$0x12
+	pushl	$0
+	pushl	$0x12
 	jmp	isr_route
 isr_entry_int0x13:
-	pushw	$0
-	pushw	$0x13
+	pushl	$0
+	pushl	$0x13
 	jmp	isr_route
 isr_entry_int0x14:
-	pushw	$0
-	pushw	$0x14
+	pushl	$0
+	pushl	$0x14
 	jmp	isr_route
 isr_entry_int0x15:
-	pushw	$0
-	pushw	$0x15
+	pushl	$0
+	pushl	$0x15
 	jmp	isr_route
 isr_entry_int0x16:
-	pushw	$0
-	pushw	$0x16
+	pushl	$0
+	pushl	$0x16
 	jmp	isr_route
 isr_entry_int0x17:
-	pushw	$0
-	pushw	$0x17
+	pushl	$0
+	pushl	$0x17
 	jmp	isr_route
 isr_entry_int0x18:
-	pushw	$0
-	pushw	$0x18
+	pushl	$0
+	pushl	$0x18
 	jmp	isr_route
 isr_entry_int0x19:
-	pushw	$0
-	pushw	$0x19
+	pushl	$0
+	pushl	$0x19
 	jmp	isr_route
 isr_entry_int0x1a:
-	pushw	$0
-	pushw	$0x1a
+	pushl	$0
+	pushl	$0x1a
 	jmp	isr_route
 isr_entry_int0x1b:
-	pushw	$0
-	pushw	$0x1b
+	pushl	$0
+	pushl	$0x1b
 	jmp	isr_route
 isr_entry_int0x1c:
-	pushw	$0
-	pushw	$0x1c
+	pushl	$0
+	pushl	$0x1c
 	jmp	isr_route
 isr_entry_int0x1d:
-	pushw	$0
-	pushw	$0x1d
+	pushl	$0
+	pushl	$0x1d
 	jmp	isr_route
 isr_entry_int0x1e:
-	pushw	$0
-	pushw	$0x1e
+	pushl	$0
+	pushl	$0x1e
 	jmp	isr_route
 isr_entry_int0x1f:
-	pushw	$0
-	pushw	$0x1f
+	pushl	$0
+	pushl	$0x1f
 	jmp	isr_route
 isr_entry_int0x20:
-	pushw	$0
-	pushw	$0x20
+	pushl	$0
+	pushl	$0x20
 	jmp	isr_route
 isr_entry_int0x21:
-	pushw	$0
-	pushw	$0x21
+	pushl	$0
+	pushl	$0x21
 	jmp	isr_route
 isr_entry_int0x22:
-	pushw	$0
-	pushw	$0x22
+	pushl	$0
+	pushl	$0x22
 	jmp	isr_route
 isr_entry_int0x23:
-	pushw	$0
-	pushw	$0x23
+	pushl	$0
+	pushl	$0x23
 	jmp	isr_route
 isr_entry_int0x24:
-	pushw	$0
-	pushw	$0x24
+	pushl	$0
+	pushl	$0x24
 	jmp	isr_route
 isr_entry_int0x25:
-	pushw	$0
-	pushw	$0x25
+	pushl	$0
+	pushl	$0x25
 	jmp	isr_route
 isr_entry_int0x26:
-	pushw	$0
-	pushw	$0x26
+	pushl	$0
+	pushl	$0x26
 	jmp	isr_route
 isr_entry_int0x27:
-	pushw	$0
-	pushw	$0x27
+	pushl	$0
+	pushl	$0x27
 	jmp	isr_route
 isr_entry_int0x28:
-	pushw	$0
-	pushw	$0x28
+	pushl	$0
+	pushl	$0x28
 	jmp	isr_route
 isr_entry_int0x29:
-	pushw	$0
-	pushw	$0x29
+	pushl	$0
+	pushl	$0x29
 	jmp	isr_route
 isr_entry_int0x2a:
-	pushw	$0
-	pushw	$0x2a
+	pushl	$0
+	pushl	$0x2a
 	jmp	isr_route
 isr_entry_int0x2b:
-	pushw	$0
-	pushw	$0x2b
+	pushl	$0
+	pushl	$0x2b
 	jmp	isr_route
 isr_entry_int0x2c:
-	pushw	$0
-	pushw	$0x2c
+	pushl	$0
+	pushl	$0x2c
 	jmp	isr_route
 isr_entry_int0x2d:
-	pushw	$0
-	pushw	$0x2d
+	pushl	$0
+	pushl	$0x2d
 	jmp	isr_route
 isr_entry_int0x2e:
-	pushw	$0
-	pushw	$0x2e
+	pushl	$0
+	pushl	$0x2e
 	jmp	isr_route
 isr_entry_int0x2f:
-	pushw	$0
-	pushw	$0x2f
+	pushl	$0
+	pushl	$0x2f
 	jmp	isr_route
 isr_entry_int0x30:
-	pushw	$0
-	pushw	$0x30
+	pushl	$0
+	pushl	$0x30
 	jmp	isr_route
 isr_entry_int0x31:
-	pushw	$0
-	pushw	$0x31
+	pushl	$0
+	pushl	$0x31
 	jmp	isr_route
 isr_entry_int0x32:
-	pushw	$0
-	pushw	$0x32
+	pushl	$0
+	pushl	$0x32
 	jmp	isr_route
 
-isr_entry_tab:
+isr_entry_tab:				# table of entry, use for init/desc.c
 	.long	isr_entry_int0x00
 	.long	isr_entry_int0x01
 	.long	isr_entry_int0x02
@@ -284,7 +305,7 @@ isr_entry_tab:
 	.long	isr_entry_int0x31
 	.long	isr_entry_int0x32
 
-isr_tab:
+isr_tab:			# ISR handlers in srv/isr.c 
 	.long	isr_int0x00
 	.long	isr_int0x01
 	.long	isr_int0x02

@@ -3,7 +3,9 @@
 LD_FLAGS	+=-Ttext 0x8000
 INIT		=init/init.a
 SRV		=srv/srv.a
-KERNEL_OBJS	=start.s.o $(INIT) $(SRV)
+MM		=mm/mm.a
+TTY		=tty/tty.a
+KERNEL_OBJS	=start.s.o $(INIT) $(SRV) $(MM) $(TTY)
 KERNEL_ELF	=kernel.elf
 KERNEL_BIN	=kernel.bin
 KERNEL_MAP	=kernel.map
@@ -22,6 +24,12 @@ $(INIT) : $(wildcard init/*)
 
 $(SRV) : $(wildcard srv/*)
 	$(MAKE) -r target -C srv/
+
+$(MM) : $(wildcard mm/*)
+	$(MAKE) -r target -C mm/
+
+$(TTY) : $(wildcard tty/*)
+	$(MAKE) -r target -C tty/
 
 clean :
 	$(RM) $(KERNEL_OBJS) $(KERNEL_ELF) $(KERNEL_BIN) $(KERNEL_MAP)

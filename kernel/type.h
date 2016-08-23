@@ -15,5 +15,6 @@ typedef	u8	b_t;
 typedef	u8	*bp_t;
 typedef	void	*vp_t;
 typedef	u8	*va_list;
+typedef	u_t	size_t;
 
 

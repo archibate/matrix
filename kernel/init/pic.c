@@ -4,7 +4,7 @@
 #include	"../asf.h"
 
 
-void	init_pic()
+void	init_pic()	/* 8295A PIC */
 {
 	io_outb(0x11, 0x20);
 	io_outb(0x11, 0xA0);
@@ -14,8 +14,16 @@ void	init_pic()
 	io_outb(0x02, 0xA1);
 	io_outb(0x01, 0x21);
 	io_outb(0x01, 0xA1);
-	io_outb(0xFF, 0x21);
-	io_outb(0xF8, 0xA1);
+	io_outb(0xFF, 0x21);	/* 0xF8 = 11111000, bit 2 is slave PIC */
+	io_outb(0xFF, 0xA1);
+}
+
+
+void	init_pit()	/* the PIT timer */
+{
+	io_outb(0x34, 0x43);
+	io_outb(0x9C, 0x40);
+	io_outb(0x2E, 0x40);	/* 10ms between each timer IRQ 0x20 */
 }
 
 
