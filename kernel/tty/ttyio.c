@@ -18,6 +18,9 @@ void	printstr(
 	for (;;) {
 		switch (ch = *str++) {
 		case '\n':
+			/*if (cur_p >= VRAM + TTY_XS * (TTY_YS - 1)) {
+				scrollup_screen();
+			}*/
 			cur_p += TTY_XS;
 			continue;
 		case 0:
@@ -39,7 +42,16 @@ void	clean_screen()
 	u16	*p = VRAM;
 	set_cur_sub(0);
 	while (p < VRAM + TTY_XS * TTY_YS)
-		*p++ = 0;
+		*p++ = 0x0700;
+}
+
+
+void	scrollup_screen()
+{
+	u16	*p = VRAM - 1;
+	while (++p < VRAM + TTY_XS * (TTY_YS - 1)) {
+		*p = p[TTY_XS];
+	}
 }
 
 
