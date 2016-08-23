@@ -11,7 +11,7 @@ void	init(void)	/* init() were called from start.s */
 	init_gdt();
 	init_idt();
 	init_pic();
-	init_pit();
+	//init_pit();
 	io_sti();
 
 	//__asm__ ("int	$0x30");
