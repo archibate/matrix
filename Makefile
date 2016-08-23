@@ -21,6 +21,10 @@ all : boot.img
 run : all
 	$(QEMU) -m 16 -fda $(FDA_IMG) -boot a
 
+rebuild :
+	$(MAKE) -r clean
+	$(MAKE) -r all
+
 $(FDA_IMG) : $(BOOT_BIN) $(KERNEL_BIN)
 	#$(CAT) $(BOOT_BIN) $(KERNEL_BIN) > $@
 	$(EDIMG) $@ 1474560 $(BOOT_BIN) 2048 0 \
