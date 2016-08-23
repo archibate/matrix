@@ -1,7 +1,5 @@
-/* 
- * vsprintf.c
- * - 内核的标准库：字符串格式化输出：
- *   vsprintf, sprintf
+/*
+ * kernel Standrad C library : vsprintf
  */
 #include	"../kernel.h"
 #include	"vsprintf.h"
@@ -9,7 +7,7 @@
 #include	"string.h"
 
 
-static inline char	*itoa_base_sub(	// 一会儿再来改进
+/*static inline char	*itoa_base_sub(	// 一会儿再来改进
 		int	val,
 		int	base,
 		char	**ps)
@@ -22,7 +20,7 @@ static inline char	*itoa_base_sub(	// 一会儿再来改进
 		(m + '0') : (m - 10 + 'A');
 
 	return *ps;
-}
+}*/
 
 
 static inline void	itoa10_sub(

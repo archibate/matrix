@@ -12,6 +12,7 @@
 #define	ZERO_DESC_SEL	0x0000
 #define	SYS_CODE_SEL	0x0008
 #define	SYS_DATA_SEL	0x0010
+#define	TSS_DESC_SEL	0x0020
 
 #define	DA_32		0x8000
 #define	DA_G		0x4000

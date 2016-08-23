@@ -1,5 +1,7 @@
 #include	"../kernel.h"
 #include	"desc.h"
+#include	"../tt/tt.h"
+#include	"../mm/mm.h"
 
 
 void	init_gdt()
@@ -10,6 +12,8 @@ void	init_gdt()
 		0x00000000, 0xFFFFFF, DA_C + DA_32 + DA_G + DA_DPL0);
 	set_seg_desc(GDT_PAPV + (SYS_DATA_SEL >> 3),
 		0x00000000, 0xFFFFFF, DA_DRW + DA_32 + DA_G + DA_DPL0);
+	set_seg_desc(GDT_PAPV + (TSS_DESC_SEL >> 3),
+		TSS0_PAD, sizeof(struct tss), DA_TSS);
 
 	static struct	{
 		u16	limit;

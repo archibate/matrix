@@ -1,12 +1,9 @@
-/* string.c
-* - 内核的标准库：字符串的处理：
-*   strcpy, strcat, strcmp, strlen
-*/
+/*
+ * kernel Standard C library : string
+ */
 #include	"../kernel.h"
 #include	"string.h"
 #include	"memory.h"
-
-// 一定还有可以改进的地方
 
 
 #ifndef	_FL_CC_tcc

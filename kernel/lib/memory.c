@@ -1,15 +1,8 @@
 /*
- * src/kernel/lib/memory.c
- * - 内核的标准库：内存处理相关的函数：
- *   memcpy, memset, memmove, memcmp
+ * kernel Standard C library : memory
  */
 #include	"../kernel.h"
 #include	"memory.h"
-
-/*
- * 都是内嵌汇编的函数（这就是
- * Linus 所说的 low-level coding 吧）
- */
 
 
 void	*memcpy(

@@ -205,6 +205,7 @@ void	isr_int0x20()	/* timer IRQ */
 	//static u16	*next_heart = (u16 *) 0x000B8006;
 	//*next_heart++ = 0x0303;
 	(* (u16 *) 0x000B8000)++;
+	//printstr("timer IRQ called\r\n", 0x07);
 	io_outb(0x60, 0x20);
 }
 
