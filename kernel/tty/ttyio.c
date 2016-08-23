@@ -1,5 +1,6 @@
 #include	"../kernel.h"
 #include	"ttyio.h"
+#include	"../lib/memory.h"
 #include	"../asf.h"
 
 
@@ -18,9 +19,10 @@ void	printstr(
 	for (;;) {
 		switch (ch = *str++) {
 		case '\n':
-			/*if (cur_p >= VRAM + TTY_XS * (TTY_YS - 1)) {
+			if (cur_p >= VRAM + TTY_XS * (TTY_YS - 1)) {
 				scrollup_screen();
-			}*/
+				continue;
+			}
 			cur_p += TTY_XS;
 			continue;
 		case 0:
@@ -41,17 +43,20 @@ void	clean_screen()
 {
 	u16	*p = VRAM;
 	set_cur_sub(0);
-	while (p < VRAM + TTY_XS * TTY_YS)
-		*p++ = 0x0700;
+	/*while (p < VRAM + TTY_XS * TTY_YS)
+		*p++ = 0x0700;*/
+	memset_word(VRAM, 0x0700, TTY_XS * TTY_YS);
 }
 
 
 void	scrollup_screen()
 {
 	u16	*p = VRAM - 1;
-	while (++p < VRAM + TTY_XS * (TTY_YS - 1)) {
+	/*while (++p < VRAM + TTY_XS * (TTY_YS - 1)) {
 		*p = p[TTY_XS];
-	}
+	}*/
+	memcpy_word(VRAM, VRAM + TTY_XS, TTY_XS * (TTY_YS - 1));
+	memset_word(VRAM + TTY_XS * (TTY_YS - 1), 0x0700, TTY_XS);
 }
 
 

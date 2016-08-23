@@ -17,7 +17,7 @@ void	init(void)	/* init() were called from start.s */
 	clean_screen();
 	printstr("Hello, TelType!\r\nI'm MATRIX!\r\n", 0x07);
 
-	//__asm__ ("int	$0x30");
+	__asm__ ("int	$0x30");
 
 	for (;;) {
 		io_hlt();

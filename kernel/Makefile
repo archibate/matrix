@@ -5,6 +5,7 @@ INIT		=init/init.a
 SRV		=srv/srv.a
 MM		=mm/mm.a
 TTY		=tty/tty.a
+LIB		=lib/lib.a
 KERNEL_OBJS	=start.s.o $(INIT) $(SRV) $(MM) $(TTY)
 KERNEL_ELF	=kernel.elf
 KERNEL_BIN	=kernel.bin
@@ -30,6 +31,9 @@ $(MM) : $(wildcard mm/*)
 
 $(TTY) : $(wildcard tty/*)
 	$(MAKE) -r target -C tty/
+
+$(LIB) : $(wildcard lib/*)
+	$(MAKE) -r target -C lib/
 
 clean :
 	$(RM) $(KERNEL_OBJS) $(KERNEL_ELF) $(KERNEL_BIN) $(KERNEL_MAP)
