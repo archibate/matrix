@@ -14,6 +14,7 @@ void	init(void)	/* init() were called from start.s */
 	init_pic();
 	//init_pit();
 	//io_sti();
+	clean_screen();
 	printstr("Hello, TelType!\r\nI'm MATRIX!\r\n", 0x0B);
 
 	//__asm__ ("int	$0x30");

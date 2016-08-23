@@ -11,5 +11,6 @@
 void	printstr(
 		const char	*str,
 		int	col);
+void	clean_screen();
 
 

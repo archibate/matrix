@@ -14,7 +14,7 @@ FDA_IMG		=boot.img
 
 default : all
 
-.PHONY : clean all run
+.PHONY : clean all run rebuild
 
 all : boot.img
 
