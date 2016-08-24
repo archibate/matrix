@@ -2,6 +2,7 @@
 #include	"isr.h"
 #include	"../init/desc.h"
 #include	"../init/pic.h"
+#include	"../tt/tt.h"
 #include	"../tty/ttyio.h"
 #include	"../asf.h"
 
@@ -205,15 +206,17 @@ void	isr_int0x20()	/* timer IRQ */
 	//static u16	*next_heart = (u16 *) 0x000B8006;
 	//*next_heart++ = 0x0303;
 	(* (u16 *) 0x000B8000)++;
-	//printstr("timer IRQ called\r\n", 0x07);
+	//printf("timer IRQ called\r\n");
 	io_outb(0x60, 0x20);
+	schedule();
+	tt_iret();
 }
 
 
 void	isr_int0x21()	/* keyboard IRQ */
 {
 	(* (u16 *) 0x000B8004) = 0x0303;
-	printstr("keyboard IRQ called\r\n", 0x07);
+	printf("keyboard IRQ called\r\n");
 	io_outb(0x20, 0x20);
 }
 

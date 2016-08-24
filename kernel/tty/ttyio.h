@@ -11,6 +11,9 @@
 void	printstr(
 		const char	*str,
 		int	col);
+void	printf(
+		const char	*str,
+		...);
 void	clean_screen();
 void	scrollup_screen();
 
