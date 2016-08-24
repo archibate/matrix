@@ -12,12 +12,16 @@ void	init_gdt()
 		0x00000000, 0xFFFFFF, DA_C + DA_32 + DA_G + DA_DPL0);
 	set_seg_desc(GDT_PAPV + (SYS_DATA_SEL >> 3),
 		0x00000000, 0xFFFFFF, DA_DRW + DA_32 + DA_G + DA_DPL0);
+	set_seg_desc(GDT_PAPV + (USER_CODE_SEL >> 3),
+		0x00000000, 0xFFFFFF, DA_C + DA_32 + DA_G + DA_DPL3);
+	set_seg_desc(GDT_PAPV + (USER_DATA_SEL >> 3),
+		0x00000000, 0xFFFFFF, DA_DRW + DA_32 + DA_G + DA_DPL3);
 	set_seg_desc(GDT_PAPV + (TSS_DESC_SEL >> 3),
 		TSS0_PAD, sizeof(struct tss), DA_TSS);
 
 	static struct	{
 		u16	limit;
-		u_t	addr;
+		r_t	addr;
 	} __attribute__ ((packed)) gdtr_val = {
 		GDT_MAX * 8 - 1, GDT_PAD
 	};
@@ -36,7 +40,7 @@ void	init_idt()
 	}
 	for (; i < 256; i++) {
 		set_gate_desc(IDT_PAPV + i, SYS_CODE_SEL,
-				(u_t) isr_default,
+				(r_t) isr_default,
 				0, DA_IG + DA_DPL0);
 	}
 
@@ -58,8 +62,8 @@ void	isr_default(void)
 
 void	set_seg_desc(
 		u64	*dscr,
-		u_t	base,
-		u_t	limit,
+		r_t	base,
+		r_t	limit,
 		u16	attr)
 {
 	*dscr	= ((u64) (limit & 0x0FFFF)
@@ -72,7 +76,7 @@ void	set_seg_desc(
 void	set_gate_desc(
 		u64	*dscr,
 		u16	select,
-		u_t	offset,
+		r_t	offset,
 		u8	dcount,
 		u16	attr)
 {

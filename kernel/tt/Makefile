@@ -1,6 +1,6 @@
  include	../../Makefile.header
 
-TT_OBJS		=tt.c.o
+TT_OBJS		=tt.c.o tt.s.o
 TT		=tt.a
 
 target : $(TT)

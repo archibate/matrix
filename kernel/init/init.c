@@ -9,7 +9,7 @@
 
 void	init(void)	/* init() were called from start.s */
 {
-	(* (u16 *) 0x000B8000) = 0x0C03;
+	//(* (u16 *) 0x000B8000) = 0x0C03;
 
 	init_gdt();
 	init_idt();

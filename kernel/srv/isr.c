@@ -86,7 +86,7 @@ void	isr_int0x0c()
 
 void	isr_int0x0d()
 {
-	(* (u16 *) 0x000B8004) = 0x0303;
+	(* (u16 *) 0x000B8004) = 0x0C03;
 	__asm__ ("cli;hlt");
 }
 

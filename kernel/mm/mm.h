@@ -2,9 +2,9 @@
 
 
 void	*mm_alloc(
-		size_t	size);
-u_t	memort_test(
-		u_t	begin,
-		u_t	end);
+		r_t	size);
+r_t	memort_test(
+		r_t	begin,
+		r_t	end);
 
 

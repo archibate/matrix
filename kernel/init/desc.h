@@ -1,8 +1,10 @@
 #pragma once
 
 
-#define	GDT_PAD		0x00001800
+#define	GDT_PAD		0x00001800	/* PAD = Physical ADdress */
 #define	IDT_PAD		0x00001000
+#define	STACK_PAD	0x00020000
+#define	HEAP_PAD	0x00018000
 #define	GDT_PAPV	((u64 *) GDT_PAD)
 #define	IDT_PAPV	((u64 *) IDT_PAD)
 #define	GDT_MAX		64
@@ -12,7 +14,9 @@
 #define	ZERO_DESC_SEL	0x0000
 #define	SYS_CODE_SEL	0x0008
 #define	SYS_DATA_SEL	0x0010
-#define	TSS_DESC_SEL	0x0020
+#define	USER_CODE_SEL	0x001B
+#define	USER_DATA_SEL	0x0023
+#define	TSS_DESC_SEL	0x0028
 
 #define	DA_32		0x8000
 #define	DA_G		0x4000

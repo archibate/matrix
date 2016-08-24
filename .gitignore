@@ -10,9 +10,11 @@
 *.old
 *.bin
 *.img
+temp
 *~
 *.un~
 *.swp
 *.swo
+#*#
 tags
 cscope.*

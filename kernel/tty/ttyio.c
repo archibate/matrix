@@ -1,6 +1,7 @@
 #include	"../kernel.h"
 #include	"ttyio.h"
 #include	"../lib/memory.h"
+#include	"../lib/vsprintf.h"
 #include	"../asf.h"
 
 
@@ -39,9 +40,20 @@ void	printstr(
 }
 
 
+void	printf(
+	const char	*fmt,
+	...)
+{
+	char	buf[1024];
+	va_list	args = (va_list) ((r_t *) &fmt + 1);
+	vsprintf(buf, fmt, args);	/* may overflow here */
+	printstr(buf, 0x07);
+}
+
+
 void	clean_screen()
 {
-	u16	*p = VRAM;
+	//u16	*p = VRAM;
 	set_cur_sub(0);
 	/*while (p < VRAM + TTY_XS * TTY_YS)
 		*p++ = 0x0700;*/
@@ -51,7 +63,7 @@ void	clean_screen()
 
 void	scrollup_screen()
 {
-	u16	*p = VRAM - 1;
+	//u16	*p = VRAM - 1;
 	/*while (++p < VRAM + TTY_XS * (TTY_YS - 1)) {
 		*p = p[TTY_XS];
 	}*/
