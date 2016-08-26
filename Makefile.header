@@ -29,10 +29,10 @@ BOCHS		=bochsdbg
 INCLUDE_FLAGS	=$(INCLUDE+-I $(INCLUDE))
 CC_OPTIZIME	=-O0#fast
 DEBUG_FLAG	=-g
-CC_WARNNINGS	=-Wall -Wno-parentheses -Wno-main -Wno-long-long \
+CC_WARNNINGS	=-Wall -Wno-parentheses -Wno-long-long \
 		 -Wno-unused-function -Werror=sign-compare -Werror=pedantic \
 		 -Wno-unused-parameter -Werror=type-limits -Wno-comment \
-		 -Werror=array-bounds -Werror=uninitialized \
+		 -Werror=array-bounds -Wno-main -Werror=uninitialized \
 		 -Werror=int-to-pointer-cast -Werror=pointer-to-int-cast \
 		 -Werror=int-conversion -Werror=incompatible-pointer-types \
 		 -Werror=implicit-function-declaration -Werror=implicit-int

@@ -11,8 +11,14 @@
 void	printstr(
 		const char	*str,
 		int	col);
-void	printf(
-		const char	*str,
+int	printf(
+		const char	*fmt,
+		...);
+int	printk(
+		const char	*fmt,
+		...);
+void	panic(
+		const char	*fmt,
 		...);
 void	clean_screen();
 void	scrollup_screen();

@@ -11,6 +11,7 @@
 *.bin
 *.img
 temp
+*.unused
 *~
 *.un~
 *.swp

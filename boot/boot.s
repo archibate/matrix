@@ -186,6 +186,18 @@ setup:
 	movw	%cs, %ax
 	movw	%ax, %ds
 	movw	%ax, %es
+	#movl	$0, %eax
+	#cpuid
+	#movl	%ebx, msg_cpumaker_sz
+	#movl	%edx, msg_cpumaker_sz + 4
+	#movl	%ecx, msg_cpumaker_sz + 8
+	#movl	%eax, cpuid_a_0
+	#movl	$1, %eax
+	#cpuid
+	#movl	%eax, cpuid_a_1
+	#movw	$msg_cpumaker, %si
+	#call	print
+	#jmp	halt
 #	movw	$msg_setup, %si
 #	call	print
 	movw	$msg_read, %si
@@ -239,6 +251,10 @@ msg_crlf:	.ascii	"\r\n\0"
 msg_halt:	.ascii	"System halted\0"
 msg_err:	.ascii	"An error occurred during the setup stage\r\n"
 		.ascii	"Press any key to reset\0"
+msg_cpumaker:	.ascii	"CPU : "
+msg_cpumaker_sz:.ascii	"                \r\n\0"
+cpuid_a_0:	.long	0
+cpuid_a_1:	.long	0
 
 .org	0x7F4, 0x00
 

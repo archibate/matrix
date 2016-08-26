@@ -4,17 +4,11 @@
 static inline u8	io_inb(
 		u16	port)
 {
-#ifdef	__GNUC__
 	u8	data;
-#endif
 	__asm__ ("inb	%%dx, %%al" :
-#ifdef	__GNUC__
 			"=al" (data)
-#endif
 			: "dx" (port));
-#ifdef	__GNUC__
 	return	data;
-#endif
 }
 
 
@@ -24,6 +18,16 @@ static inline void	io_outb(
 {
 	__asm__ ("outb	%%al, %%dx" ::
 			"al" (data),
+			"dx" (port));
+}
+
+
+static inline void	io_outw(
+		u16	data,
+		u16	port)
+{
+	__asm__ ("outw	%%ax, %%dx" ::
+			"ax" (data),
 			"dx" (port));
 }
 
@@ -43,6 +47,26 @@ static inline void	io_sti()
 static inline void	io_cli()
 {
 	__asm__ ("cli");
+}
+
+
+static inline u32	io_rdmsr(
+		u32	addr)
+{
+	u32	res;
+	__asm__ ("rdmsr"
+			: "=eax" (res)
+			: "ecx" (addr));
+	return	res;
+}
+
+
+static inline void	io_wrmsr(
+		u32	data,
+		u32	addr)
+{
+	__asm__ ("wrmsr" ::
+			"eax" (data), "ecx" (addr));
 }
 
 

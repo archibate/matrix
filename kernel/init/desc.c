@@ -33,10 +33,15 @@ void	init_gdt()
 void	init_idt()
 {
 	int	i;
-	for (i = 0; i < ISR_MAX; i++) {
+	for (i = 0; i < 0x30; i++) {
 		set_gate_desc(IDT_PAPV + i, SYS_CODE_SEL,
 				isr_entry_tab[i],
 				0, DA_IG + DA_DPL0);
+	}
+	for (i = 0; i < 0x33; i++) {
+		set_gate_desc(IDT_PAPV + i, SYS_CODE_SEL,
+				isr_entry_tab[i],
+				0, DA_IG + DA_DPL3);
 	}
 	for (; i < 256; i++) {
 		set_gate_desc(IDT_PAPV + i, SYS_CODE_SEL,

@@ -1,8 +1,8 @@
 #pragma once
 
 
-#define	GDT_PAD		0x00001800	/* PAD = Physical ADdress */
-#define	IDT_PAD		0x00001000
+#define	GDT_PAD		0x00001000	/* PAD = Physical ADdress */
+#define	IDT_PAD		0x00000800
 #define	STACK_PAD	0x00020000
 #define	HEAP_PAD	0x00018000
 #define	GDT_PAPV	((u64 *) GDT_PAD)

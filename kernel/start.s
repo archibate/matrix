@@ -13,11 +13,17 @@ pmode_start:			# now, we are in 0x8000:0x00010000 in pmode
 	movw	%ax, %ss
 	movw	%ax, %fs
 	movw	%ax, %gs
+
+	movl	$0x001FFFF8, %esp	# reserve 8 byte above stack top
+	movl	%esp, %ebp
+
+	#movl	$0xC0000080, %ecx
+	#rdmsr
 	#movl	$0xB8000, %edi	# if we are succeed, we will see
 	#movw	$0x0C03, %ax	# a red heart on Ln 1 Col 1
 	#stosw
-	movl	$0x001FFFF8, %esp	# reserve 8 byte above stack top
-	movl	%esp, %ebp
+
+
 	call	init
 	cli
 	hlt
@@ -134,7 +140,7 @@ gdt0:
 	.quad	0x0000000000000000
 	.quad	0x0000000000000000
 
-.equ	gdt0_len,	. - gdt0
+.equ	gdt0_len,	. - gdt0 - 1
 
 print_bios:
 	movb	$0x0E, %ah

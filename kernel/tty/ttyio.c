@@ -1,6 +1,7 @@
 #include	"../kernel.h"
 #include	"ttyio.h"
 #include	"../lib/memory.h"
+#include	"../tt/tt.h"
 #include	"../lib/vsprintf.h"
 #include	"../asf.h"
 
@@ -40,14 +41,48 @@ void	printstr(
 }
 
 
-void	printf(
+int	printf(
 	const char	*fmt,
 	...)
 {
 	char	buf[1024];
 	va_list	args = (va_list) ((r_t *) &fmt + 1);
-	vsprintf(buf, fmt, args);	/* may overflow here */
+	int	res = vsprintf(buf, fmt, args);	/* may overflow here */
 	printstr(buf, 0x07);
+	return	res;
+}
+
+
+int	printk(
+	const char	*fmt,
+	...)
+{
+	char	buf[1024];
+	va_list	args = (va_list) ((r_t *) &fmt + 1);
+	printstr("):", 0x07);
+	extern struct task	*task_ready;
+	int	res = vsprintf(buf + sprintf(buf, "[%8s]:", task_ready->name),
+			fmt, args);	/* may overflow here */
+	printstr(buf, 0x07);
+	printstr("\r\n", 0x07);
+	return	res;
+}
+
+
+void	panic(
+		const char	*fmt,
+		...)
+{
+	char	buf[1024];
+	va_list	args = (va_list) ((r_t *) &fmt + 1);
+	printstr("):", 0x07);
+	extern struct task	*task_ready;
+	printstr(">>>PANIC<<< : ", 0x0C);
+	vsprintf(buf + sprintf(buf, "[%8s]:", task_ready->name),
+			fmt, args);	/* may overflow here */
+	printstr(buf, 0x0C);
+	printstr("\r\n", 0x07);
+	__asm__ ("cli;hlt");
 }
 
 
