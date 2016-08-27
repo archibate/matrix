@@ -5,6 +5,7 @@
 _start:		# we are loaded at 0x1000:0x0000, still real mode now
 	jmp	rmode_start	# our boot loader do NOT set pmode
 
+#ifdef	BITS64
 .code32
 pmode_start:			# now, we are in 0x8000:0x00010000 in pmode
 	movw	$0x0010, %ax
@@ -18,11 +19,21 @@ pmode_start:			# now, we are in 0x8000:0x00010000 in pmode
 	movl	%esp, %ebp
 
 	jmp	kernel_start
-#endif
+#else
 
-#if	ARCH == x86_64
 .code64
 lmode_start:
+	movw	$0x0010, %ax
+	movw	%ax, %ds
+	movw	%ax, %es
+	movw	%ax, %ss
+	movw	%ax, %fs
+	movw	%ax, %gs
+
+	movq	$0x001FFFF8, %rsp
+	movq	%rsp, %rbp
+
+	movw	$0xFFFF, 0xB8000
 	jmp	kernel_start
 #endif
 
@@ -50,7 +61,7 @@ rmode_start:
 	call	print_bios
 
 
-#if	ARCH == x86_64
+#ifdef	BITS64
 check_supp_lmode:	# use CPUID check if CPU support long-mode (64-bit)
 	movl	$0x80000000, %eax
 	cpuid
@@ -102,7 +113,7 @@ load_gdt:
 				# 0x80**, because we specified flag :
 				# -Ttext 0x8000 in Makefile.
 
-#if	ARCH == x86_64
+#ifdef	BITS64
 enable_pae:
 	movl	%cr4, %eax
 	btsl	$5, %eax	# PAE
@@ -123,7 +134,7 @@ init_lmode_pt:		# Will be reset in mm/pg.c
 	movl	$0, %ds:l2pt_ad + 4
 	movw	$l1pt_ad & 0xF, %di
 	movl	$7, %ebx
-	movl	$512, %ecx
+	movl	$2048, %ecx
 	pushl	$l1pt_ad >> 4
 	popl	%es
 next_page_desc:
@@ -176,11 +187,12 @@ enable_a20:
 load_cr0:
 	movl	%cr0, %eax
 	btsl	$0, %eax	# PE
-#if	ARCH == x86_64
+#ifdef	BITS64
 	btsl	$31, %eax	# PG
+#endif
 	movl	%eax, %cr0		# OK!!!
 
-#if	ARCH == x86_64
+#ifdef	BITS64
 jump_to_lmode:
 	.byte	0x66, 0xEA
 	.long	lmode_start
@@ -224,7 +236,7 @@ idtr0:			# will reloaded later
 
 gdt0:
 	.quad	0x0000000000000000
-#if	ARCH == x86_64
+#ifdef	BITS64
 	.quad	0x0020980000000000
 	.quad	0x0000920000000001
 #else

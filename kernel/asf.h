@@ -6,8 +6,13 @@ static inline u8	io_inb(
 {
 	u8	data;
 	__asm__ ("inb	%%dx, %%al" :
+#ifdef	_TCC
+			"=a" (data)
+			: "d" (port));
+#else
 			"=al" (data)
 			: "dx" (port));
+#endif
 	return	data;
 }
 
@@ -17,8 +22,13 @@ static inline void	io_outb(
 		u16	port)
 {
 	__asm__ ("outb	%%al, %%dx" ::
+#ifdef	_TCC
+			"a" (data),
+			"d" (port));
+#else
 			"al" (data),
 			"dx" (port));
+#endif
 }
 
 
@@ -55,8 +65,13 @@ static inline u32	io_rdmsr(
 {
 	u32	res;
 	__asm__ ("rdmsr"
+#ifdef	_TCC
+			: "=a" (res)
+			: "c" (addr));
+#else
 			: "=eax" (res)
 			: "ecx" (addr));
+#endif
 	return	res;
 }
 
@@ -65,8 +80,12 @@ static inline void	io_wrmsr(
 		u32	data,
 		u32	addr)
 {
-	__asm__ ("wrmsr" ::
-			"eax" (data), "ecx" (addr));
+	__asm__ ("wrmsr"
+#ifdef	_TCC
+		:: "a" (data), "c" (addr));
+#else
+		:: "eax" (data), "ecx" (addr));
+#endif
 }
 
 

@@ -5,9 +5,12 @@ MCPU		=
 BITS		=64
 
 GCC		=$(CROSSC)gcc
-CC		=$(CROSSC)cc
-AS		=$(CROSSC)as
-LD		=$(CROSSC)ld
+#CC		=$(CROSSC)cc
+#AS		=$(CROSSC)as
+#LD		=$(CROSSC)ld
+CC		=x86_64-tcc
+AS		=as
+LD		=ld
 #SM		=$(CROSSC)nasm
 OBJCOPY		=$(CROSSC)objcopy
 
@@ -38,13 +41,14 @@ CC_WARNNINGS	=-Wall -Wno-parentheses -Wno-long-long \
 		 -Werror=int-conversion -Werror=incompatible-pointer-types \
 		 -Werror=implicit-function-declaration -Werror=implicit-int
 CC_DEFINES	=-D_ARCH=$(ARCH) -D_CROSSC=$(CROSSC) -D_CC=$(CC) \
-		 -D_KERN_MAKE=1 -D_DEBUG=1
-CC_OPTIONS	=-m$(BITS) -pedantic -W -nostdlib -nostdinc -fomit-frame-pointer \
-		 -fno-builtin
+		 -D_KERN_MAKE=1 -D_DEBUG=1 -D_BITS64
+#CC_OPTIONS	=-m$(BITS) -pedantic -W -nostdlib -nostdinc \
+		 -fomit-frame-pointer -fno-builtin
+CC_OPTIONS	=-m$(BITS) -W -nostdlib -nostdinc -fomit-pointer -fno-builtin
 AS_FLAGS	=-a $(INCLUDE_FLAGS)
 CC_FLAGS	=-c $(CC_OPTIZIME) $(DEBUG_FLAGS) $(CC_OPTIONS) \
 		 $(CC_WARNNINGS) $(CC_DEFINES) $(INCLUDE_FLAGS)
-LD_FLAGS	=-m elf_$(ARCH) -N -e _start -Ttext 0 $(DEBUG_FLAG)
+LD_FLAGS	=-m$(BITS) -N -e _start -Ttext 0 $(DEBUG_FLAG)
 
 
 %.s.o : %.s

@@ -14,10 +14,11 @@ void	smi_handler();
 
 void	init(void)	/* init() were called from start.s */
 {
-#if	ARCH == x86_64
-	VRAM[10] = 0xFFFF;
-	for (;;);
-#endif
+#ifdef	BITS64
+	VRAM[0] = 0x0F0D;
+	for(;;);
+	//panic("Hi, x64!");
+#else
 	//(* (u16 *) 0x000B8000) = 0x0C03;
 
 	init_gdt();
@@ -30,6 +31,7 @@ void	init(void)	/* init() were called from start.s */
 	printstr("Hello, TelType!\r\nI'm MATRIX!\r\n", 0x07);
 	//io_sti();
 	//tt_iret();
+#if	0
 	char	cpu_builder[13] = {0};
 	u32	max_basic_leafs;
 	u32	max_extended_leafs;
@@ -244,12 +246,14 @@ void	init(void)	/* init() were called from start.s */
 	/*for (;;) {
 		__asm__ ("pause");
 	}*/
+#endif
 
 	//tt_iret();
 
 	for (;;) {
 		io_hlt();
 	}
+#endif
 }
 
 
