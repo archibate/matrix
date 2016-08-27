@@ -30,11 +30,13 @@ void	init_pg()
 		set_pt(l1pt, pg, PA_P | PA_U | PA_W);
 	}
 	//set_pt(l1pt + (L2PT_PAD >> 12), L2PT_PAD, PA_P | PA_W);
+#if	0
 	__asm__ (	"movl	%%eax, %%cr3\n"	// a59a
 			"movl	%%cr0, %%eax\n"
 			"orl	$0x80000000, %%eax\n"
 			"movl	%%eax, %%cr0\n"
 			:: "a" (L2PT_PAD));
+#endif
 	//panic("YEAH!! PG-DONE!");
 	/*remapgs(0x00200000, 0x00008000, 1);
 	printk("Byte data 0x%02X at linear address 0x00200000",

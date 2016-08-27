@@ -25,7 +25,7 @@ void	init(void)	/* init() were called from start.s */
 	clean_screen();
 	printstr("Hello, TelType!\r\nI'm MATRIX!\r\n", 0x07);
 	//io_sti();
-	//tt_iret();
+	tt_iret();
 	char	cpu_builder[13] = {0};
 	u32	max_basic_leafs;
 	u32	max_extended_leafs;

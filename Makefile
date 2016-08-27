@@ -11,6 +11,7 @@ KERNEL_BIN	=kernel/kernel.bin
 KERNEL_ELF	=kernel/kernel.elf
 KERNEL		=$(KERNEL_BIN)
 FDA_IMG		=boot.img
+HDA_IMG		=hd0.img
 
 default : all
 
@@ -19,7 +20,7 @@ default : all
 all : boot.img
 
 run : all
-	$(QEMU) -m 16 -fda $(FDA_IMG) -boot a
+	$(QEMU) -m 16 -fda $(FDA_IMG) -hda $(HDA_IMG) -boot a
 
 rebuild :
 	$(MAKE) -r clean

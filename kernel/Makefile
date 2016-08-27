@@ -7,7 +7,8 @@ TT		=tt/tt.a
 MM		=mm/mm.a
 TTY		=tty/tty.a
 LIB		=lib/lib.a
-KERNEL_OBJS	=start.s.o $(INIT) $(SRV) $(TT) $(MM) $(TTY) $(LIB)
+FS		=fs/fs.a
+KERNEL_OBJS	=start.s.o $(INIT) $(SRV) $(TT) $(MM) $(TTY) $(LIB) $(FS)
 KERNEL_ELF	=kernel.elf
 KERNEL_BIN	=kernel.bin
 KERNEL_MAP	=kernel.map
@@ -38,6 +39,9 @@ $(TTY) : $(wildcard tty/*)
 
 $(LIB) : $(wildcard lib/*)
 	$(MAKE) -r target -C lib/
+
+$(FS) : $(wildcard fs/*)
+	$(MAKE) -r target -C fs/
 
 clean :
 	$(RM) $(KERNEL_OBJS) $(KERNEL_ELF) $(KERNEL_BIN) $(KERNEL_MAP)

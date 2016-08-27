@@ -5,6 +5,7 @@
 #include	"../init/pic.h"
 #include	"../lib/memory.h"
 #include	"../tty/ttyio.h"
+#include	"../fs/fs.h"
 #include	"../lib/string.h"
 
 
@@ -17,10 +18,13 @@ void	task_b_main();
 void	task_c_main();
 
 
-u8	task_idle_stack[16384];
-u8	task_a_stack[16384];
-u8	task_b_stack[16384];
-u8	task_c_stack[16384];
+u8	unused_stack_1[4096];
+u8	task_idle_stack[4096];
+u8	task_a_stack[4096];
+u8	task_b_stack[4096];
+u8	task_c_stack[4096];
+u8	tt_daemon_stack[8192];
+u8	fs_daemon_stack[8192];
 
 
 void	init_tt()
@@ -48,12 +52,12 @@ void	init_tt()
 	task_enable(&tasks[0]);*//*9d69*/
 	init_task(&tasks[0], USER_CODE_SEL, (r_t) task_idle_main,
 			USER_DATA_SEL, (r_t) task_idle_stack);
-	init_task(&tasks[1], USER_CODE_SEL, (r_t) task_a_main,
-			USER_DATA_SEL, (r_t) task_a_stack);
-	init_task(&tasks[2], USER_CODE_SEL, (r_t) task_b_main,
-			USER_DATA_SEL, (r_t) task_b_stack);
-	init_task(&tasks[3], USER_CODE_SEL, (r_t) task_c_main,
-			USER_DATA_SEL, (r_t) task_c_stack);
+	init_task(&tasks[8], USER_CODE_SEL, (r_t) task_a_main,
+			USER_DATA_SEL, (r_t) task_a_stack + 4096);
+	init_task(&tasks[9], USER_CODE_SEL, (r_t) task_b_main,
+			USER_DATA_SEL, (r_t) task_b_stack + 4096);
+	init_task(&tasks[10], USER_CODE_SEL, (r_t) task_c_main,
+			USER_DATA_SEL, (r_t) task_c_stack + 4096);
 	/*memset(&tasks[1], 0, sizeof(struct task));
 	tasks[1].sfr.cs = USER_CODE_SEL;
 	tasks[1].sfr.ds = tasks[1].sfr.ss
@@ -114,19 +118,51 @@ void	init_tt()
 	tasks[2].sfr.eip = (r_t) task_c_main;
 	tasks[2].sfr.efl = 0x3202;
 	task_enable(&tasks[2]);*/
-	task_ready = tasks;
+	init_task(&tasks[TT_DAE], USER_CODE_SEL, (r_t) tt_daemon,
+			USER_DATA_SEL, (r_t) tt_daemon_stack + 8192);
+	init_task(&tasks[FS_DAE], USER_CODE_SEL, (r_t) fs_daemon,
+			USER_DATA_SEL, (r_t) fs_daemon_stack + 8192);
+	task_ready = tasks;	/* task_idle */
 	//printk("task_b_stack = %p", (r_t) task_b_stack);
 	//panic("hi");
 	//
 }
 
 
+void	tt_daemon()
+{
+	pid_t	sender;
+	static int	recv_buf[8];
+	static size_t	recv_size;
+	strcpy(task_ready->name, "TT");
+
+	for (;;) {
+		memset(recv_buf, 0, recv_size = sizeof(recv_buf));
+		sender = tt_recvs(0, recv_buf, &recv_size);
+
+		switch (recv_buf[0]) {
+		case TT_SCNR_exit:
+			task_disable(tasks + sender);
+			continue;
+		case TT_SCNR_fork:
+			continue;
+		default:
+			printk("System Call Error : %d is not an index of TT SysCall",
+					recv_buf[0]);
+			continue;
+		}
+	}
+}
+
+
 struct task	*schedule()
 {
 	//printk("tt/schedule called");
+	//print_task_table();
 	struct task	*task = task_ready + 1;
 	for (; task < tasks + TASK_MAX; ++task) {
 		if (task_exist(task) && task_unblocked(task)) {
+			//printk("tt/schedule : schedule to PID = %d", task - tasks);
 			return	task_ready = task;		/* 寻找下一个存在的进程 */
 		}
 	} /*
@@ -135,10 +171,12 @@ struct task	*schedule()
 	   */
 	for (task = tasks; task <= task_ready; ++task) {
 		if (task_exist(task) && task_unblocked(task)) {
+			//printk("tt/schedule : schedule to PID = %d", task - tasks);
 			return	task_ready = task;
 		}
 	}
-	panic("tt/schedule : No task avilable in task table!");
+	printk("tt/schedule : No task avilable in task table!");
+	//panic("tt/schedule : No task avilable in task table!");
 	return	NULL;
 }
 
@@ -164,10 +202,62 @@ struct task	*init_task(
 }
 
 
-void	save_sfr(
+/*void	save_sfr(
 		const struct sfr	*sfr)
 {
 	task_ready->sfr = *sfr;
+}*/
+
+
+int	tt_sends(
+		pid_t	pid,
+		const void	*buf,
+		size_t	*psize)
+{
+	int	erres;
+	__asm__ (	"movl	$1, %%eax\n"
+			"int	$0x30\n" :
+			"=a" (erres),
+			"=c" (*psize) :
+			"b" (buf),
+			"c" (*psize),
+			"d" (pid));
+	return	erres;
+}
+
+
+pid_t	tt_recvs(
+		pid_t	pid,
+		void	*buf,
+		size_t	*psize)
+{
+	pid_t	sender;
+	__asm__ (	"movl	$2, %%eax\n"
+			"int	$0x30\n" :
+			"=a" (sender),
+			"=c" (*psize) :
+			"b" (buf),
+			"c" (*psize),
+			"d" (pid));
+	return	sender;
+}
+
+
+void	print_task_table()
+{
+	struct task	*task;
+	/*printk("Task Table :");
+	printk(" PID  STAT   CS:EIP        SS:ESP     ");*/
+	for (task = tasks; task < tasks + TASK_MAX; ++task) {
+		if (task_exist(task)) {
+			printk("%5d %c%c%c- %4p:%p %4p:%p", task - tasks,
+					task_exist(task) ? 'e' : '-',
+					task == task_ready ? 'r' : '-',
+					task_blocked(task) ? 'b' : '-',
+					task->sfr.cs, task->sfr.eip,
+					task->sfr.ss, task->sfr.esp);
+		}
+	}
 }
 
 
@@ -177,20 +267,21 @@ static u16	*next_abc_p	= VRAM + 10;
 void	task_a_main()
 {
 	static char	send_buf[64] = "Secretly love you... \x03\0";
-	int	b_failed;
-	size_t	sended_size;
+	size_t	sended_size = sizeof(send_buf);
 	strcpy(task_ready->name, "task_a");
 	printk("I'm sending message to Task B : %s", send_buf);
-	do
-		__asm__ (	"movl	$1, %%eax\n"	/* SEND */
-				"int	$0x30\n" :
-				"=a" (b_failed),
-				"=c" (sended_size) :
-				"b" (send_buf),
-				"c" (sizeof(send_buf)),
-				"d" (2));		/* Task B */
-	while (b_failed);	/* try again until she recived me */
-	printk("sended size is %d", sended_size);
+	while (tt_sends(9, send_buf, &sended_size));	/* Task B */
+	//panic("DDSDSAFsfadsasrDFSf3452345sdfsf");
+	printk("sended size is %d, Oh no, she do not has enough buf...",
+			sended_size);
+	static int	scargs[8] = {0};
+	static size_t	scasize = sizeof(scargs[8]);
+	/*scargs[0] = FS_SCNR_dev_open;
+	scasize = 4;
+	while (tt_sends(FS_DAE, &scargs, &scasize));
+	scargs[0] = TT_SCNR_exit;
+	scasize = 4;
+	while (tt_sends(TT_DAE, &scargs, &scasize));*/
 	for (;;) {
 		//task_ready = &tasks[1];
 		//VRAM[5] = 0x0C03;
@@ -212,19 +303,14 @@ void	task_a_main()
 
 void	task_b_main()
 {
-	static char	recv_buf[8] = {0};
+	static char	recv_buf[8 + 1] = {0};
 	pid_t	sender_pid;
-	size_t	recved_size;
+	size_t	recved_size = sizeof(recv_buf) - 1;
 	strcpy(task_ready->name, "task_b");
-	__asm__ (	"movl	$2, %%eax\n"	/* RECV */
-			"int	$0x30\n" :
-			"=a" (sender_pid),
-			"=c" (recved_size) :
-			"b" (recv_buf),
-			"c" (sizeof(recv_buf)));
-	recv_buf[7] = 0;
+	sender_pid = tt_recvs(0, recv_buf, &recved_size);
+	recv_buf[recved_size] = 0;
 	printk("I recived message from PID %d : %s", sender_pid, recv_buf);
-	printk("What do you mean? sorry, my buffer is not enough");
+	printk("?? Sorry, what do you mean?");
 	printk("recived size is %d", recved_size);
 	for (;;) {
 		//task_ready = &tasks[0];

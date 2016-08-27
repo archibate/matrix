@@ -1,7 +1,9 @@
 #include	"../kernel.h"
 
-
 /* MM the Memory Manager */
+
+
+//void	*parts = PARTS_PAPV;
 
 
 r_t	memory_test(

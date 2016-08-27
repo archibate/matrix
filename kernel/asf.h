@@ -22,6 +22,54 @@ static inline void	io_outb(
 }
 
 
+static inline void	io_insb(
+		u16	port,
+		void	*buf,
+		size_t	cnt)
+{
+	__asm__ ("cld\nrep\ninsb" ::
+			"dx" (port),
+			"D" (buf),
+			"c" (cnt));
+}
+
+
+static inline void	io_insl(
+		u16	port,
+		void	*buf,
+		size_t	cnt)
+{
+	__asm__ ("cld\nrep\ninsl" ::
+			"dx" (port),
+			"D" (buf),
+			"c" (cnt));
+}
+
+
+static inline void	io_outsb(
+		u16	port,
+		void	*buf,
+		size_t	cnt)
+{
+	__asm__ ("cld\nrep\noutsb" ::
+			"dx" (port),
+			"S" (buf),
+			"c" (cnt));
+}
+
+
+static inline void	io_outsl(
+		u16	port,
+		void	*buf,
+		size_t	cnt)
+{
+	__asm__ ("cld\nrep\noutsl" ::
+			"dx" (port),
+			"S" (buf),
+			"c" (cnt));
+}
+
+
 static inline void	io_outw(
 		u16	data,
 		u16	port)
