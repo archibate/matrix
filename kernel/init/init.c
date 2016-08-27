@@ -14,6 +14,10 @@ void	smi_handler();
 
 void	init(void)	/* init() were called from start.s */
 {
+#if	ARCH == x86_64
+	VRAM[10] = 0xFFFF;
+	for (;;);
+#endif
 	//(* (u16 *) 0x000B8000) = 0x0C03;
 
 	init_gdt();

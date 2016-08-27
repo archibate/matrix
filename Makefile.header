@@ -1,7 +1,8 @@
-ARCH		=i386
+ARCH		=x86_64#i386
 CROSSC		=
 MARCH		=
 MCPU		=
+BITS		=64
 
 GCC		=$(CROSSC)gcc
 CC		=$(CROSSC)cc
@@ -38,12 +39,12 @@ CC_WARNNINGS	=-Wall -Wno-parentheses -Wno-long-long \
 		 -Werror=implicit-function-declaration -Werror=implicit-int
 CC_DEFINES	=-D_ARCH=$(ARCH) -D_CROSSC=$(CROSSC) -D_CC=$(CC) \
 		 -D_KERN_MAKE=1 -D_DEBUG=1
-CC_OPTIONS	=-pedantic -W -nostdlib -nostdinc -fomit-frame-pointer \
+CC_OPTIONS	=-m$(BITS) -pedantic -W -nostdlib -nostdinc -fomit-frame-pointer \
 		 -fno-builtin
 AS_FLAGS	=-a $(INCLUDE_FLAGS)
 CC_FLAGS	=-c $(CC_OPTIZIME) $(DEBUG_FLAGS) $(CC_OPTIONS) \
 		 $(CC_WARNNINGS) $(CC_DEFINES) $(INCLUDE_FLAGS)
-LD_FLAGS	=-N -e _start -Ttext 0 $(DEBUG_FLAG)
+LD_FLAGS	=-m elf_$(ARCH) -N -e _start -Ttext 0 $(DEBUG_FLAG)
 
 
 %.s.o : %.s

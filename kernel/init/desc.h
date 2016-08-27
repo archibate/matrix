@@ -18,8 +18,11 @@
 #define	USER_DATA_SEL	0x0023
 #define	TSS_DESC_SEL	0x0028
 
-#define	DA_32		0x8000
-#define	DA_G		0x4000
+#define	DA_D		0x4000
+#define	DA_L		0x2000
+#define	DA_32		DA_D
+#define	DA_64		DA_L
+#define	DA_G		0x8000
 #define	DA_DPL0		0x00
 #define	DA_DPL1		0x20
 #define	DA_DPL2		0x40

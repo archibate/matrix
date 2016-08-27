@@ -17,6 +17,17 @@ pmode_start:			# now, we are in 0x8000:0x00010000 in pmode
 	movl	$0x001FFFF8, %esp	# reserve 8 byte above stack top
 	movl	%esp, %ebp
 
+	jmp	kernel_start
+#endif
+
+#if	ARCH == x86_64
+.code64
+lmode_start:
+	jmp	kernel_start
+#endif
+
+kernel_start:
+
 	#movl	$0xC0000080, %ecx
 	#rdmsr
 	#movl	$0xB8000, %edi	# if we are succeed, we will see
@@ -37,6 +48,21 @@ rmode_start:
 	movw	$stack_top, %sp
 	movw	$msg_start, %si
 	call	print_bios
+
+
+#if	ARCH == x86_64
+check_supp_lmode:	# use CPUID check if CPU support long-mode (64-bit)
+	movl	$0x80000000, %eax
+	cpuid
+	cmp	$0x80000001, %eax
+	jb	error
+	movl	$0x80000001, %eax
+	cpuid
+	btl	$29, %edx
+	jnc	error	# if not support long-mode, ERROR!
+			# 64-bit kernel does not complied with 32-bit support
+			# to use our kernel on i386, use command 'make ARCH=i386'
+#endif
 
 copy_gdt:
 	pushw	$0x8000		# set GDT to 0x80000, templately,
@@ -70,12 +96,59 @@ copy_gdt:
 
 load_gdt:
 	cli
+	.byte	0x66		# 32-bit operand size prefix
 	lgdt	%ds:gdtr0	# %ds is zero
 				# while linking, gdtr0 will be set to
 				# 0x80**, because we specified flag :
 				# -Ttext 0x8000 in Makefile.
 
+#if	ARCH == x86_64
+enable_pae:
+	movl	%cr4, %eax
+	btsl	$5, %eax	# PAE
+	movl	%eax, %cr4
+
+init_lmode_pt:		# Will be reset in mm/pg.c
+.equ	l4pt_ad,	0x00003000
+.equ	l3pt_ad,	0x00004000
+.equ	l2pt_ad,	0x00005000
+.equ	l1pt_ad,	0x00050000
+	pushl	$0
+	popl	%ds
+	movl	$l3pt_ad + 7, %ds:l4pt_ad
+	movl	$0, %ds:l4pt_ad + 4
+	movl	$l2pt_ad + 7, %ds:l3pt_ad
+	movl	$0, %ds:l3pt_ad + 4
+	movl	$l1pt_ad + 7, %ds:l2pt_ad
+	movl	$0, %ds:l2pt_ad + 4
+	movw	$l1pt_ad & 0xF, %di
+	movl	$7, %ebx
+	movl	$512, %ecx
+	pushl	$l1pt_ad >> 4
+	popl	%es
+next_page_desc:
+	movl	%ebx, %eax
+	#.byte	0x67		# 32-bit address prefix
+	stosl	# stosl	%eax, %es:(%edi)
+	xorl	%eax, %eax
+	#.byte	0x67		# 32-bit address prefix
+	stosl
+	addl	$0x1000, %ebx
+	loop	next_page_desc
+
+load_cr3:
+	movl	$l4pt_ad, %eax
+	movl	%eax, %cr3
+
+enable_lmode:
+	movl	$0xC0000080, %ecx	# IA32_EFER
+	rdmsr
+	btsl	$8, %eax
+	wrmsr
+#endif
+
 load_idt:
+	.byte	0x66
 	lidt	%ds:idtr0
 
 	movb	$0xFF, %al
@@ -98,13 +171,21 @@ enable_a20:
 	jnz	enable_a20
 	movb	$0xDF, %al
 	outb	%al, $0x64
-	call	delay
+	call	delay		# delay is required when doing I/O
 
-set_cr0_pe:
+load_cr0:
 	movl	%cr0, %eax
-	orl	$0x00000001, %eax
-	movl	%eax, %cr0		# OK!!! pmode now
+	btsl	$0, %eax	# PE
+#if	ARCH == x86_64
+	btsl	$31, %eax	# PG
+	movl	%eax, %cr0		# OK!!!
 
+#if	ARCH == x86_64
+jump_to_lmode:
+	.byte	0x66, 0xEA
+	.long	lmode_start
+	.word	0x0008
+#else
 jump_to_pmode:			# same as : ljmp $0x0008, $pmode_start
 	.byte	0x66, 0xEA	# but, it will be failed  work if
 	.long	pmode_start	# <<-THIS is greater than 0xFFFF.
@@ -113,12 +194,20 @@ jump_to_pmode:			# same as : ljmp $0x0008, $pmode_start
 				# understand 32-bit opcode. so we use
 				# .byte, .word and .long instead
 				# to create a 32-bit opcode
+#endif
 
+error:
 fin:	hlt
 	jmp	fin
 
 delay:	outb	%al, $0x80
 	ret
+
+putsth:	movw	$msg_sth, %si
+	call	print_bios
+	ret
+
+msg_sth:	.ascii	"Hello??\0"
 
 	.align	2
 
@@ -135,8 +224,13 @@ idtr0:			# will reloaded later
 
 gdt0:
 	.quad	0x0000000000000000
+#if	ARCH == x86_64
+	.quad	0x0020980000000000
+	.quad	0x0000920000000001
+#else
 	.quad	0x00CF9A000000FFFF
 	.quad	0x00CF92000000FFFF
+#endif
 	.quad	0x0000000000000000
 	.quad	0x0000000000000000
 
