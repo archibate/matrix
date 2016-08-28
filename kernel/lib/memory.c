@@ -57,12 +57,11 @@ void	*memset(
 			"cld\n"
 			"rep\nstosl\n" ::
 			"D" (dst),
-#ifdef	_FL_CC_tcc
-			"d"
+#ifdef	_TCC
+			"d" (val),
 #else
-			"dl"
+			"dl" (val),
 #endif
-			(val),
 			"c" (cnt)
 		);
 	return dst;

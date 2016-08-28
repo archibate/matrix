@@ -4,6 +4,25 @@
 #include	"../mm/mm.h"
 
 
+#ifndef	_TCC
+struct	{
+	u16	limit;
+	r_t	addr;
+} __attribute__ ((packed)) __gdtr_val = {
+	GDT_MAX * 8 - 1, GDT_PAD
+};
+struct	{
+	u16	limit;
+	r_t	addr;
+} __attribute__ ((packed)) __idtr_val = {
+	IDT_MAX * 8 - 1, IDT_PAD
+};
+#else
+u64	__gdtr_val = (GDT_MAX * 8 - 1) | (GDT_PAD << 16);
+u64	__idtr_val = (IDT_MAX * 8 - 1) | (IDT_PAD << 16);
+#endif
+
+
 void	init_gdt()
 {
 	set_seg_desc(GDT_PAPV + (ZERO_DESC_SEL >> 3),
@@ -19,13 +38,8 @@ void	init_gdt()
 	set_seg_desc(GDT_PAPV + (TSS_DESC_SEL >> 3),
 		TSS0_PAD, sizeof(struct tss), DA_TSS);
 
-	static struct	{
-		u16	limit;
-		r_t	addr;
-	} __attribute__ ((packed)) gdtr_val = {
-		GDT_MAX * 8 - 1, GDT_PAD
-	};
-	__asm__ ("lgdt	%0" :: "m" (gdtr_val));
+	//__asm__ ("lgdt	%0" :: "m" (__gdtr_val));
+	__asm__ ("lgdt	__gdtr_val");
 	/* %cs, %ds, etc. will be reloaded until move_to_user_mode */
 }
 
@@ -49,13 +63,7 @@ void	init_idt()
 				0, DA_IG + DA_DPL0);
 	}
 
-	static struct	{
-		u16	limit;
-		u32	addr;
-	} __attribute__ ((packed)) idtr_val = {
-		IDT_MAX * 8 - 1, IDT_PAD
-	};
-	__asm__ ("lidt	%0" :: "m" (idtr_val));
+	__asm__ ("lidt	%0" :: "m" (__idtr_val));
 }
 
 

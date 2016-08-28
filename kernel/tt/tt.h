@@ -13,6 +13,8 @@
 #define	RECV		2
 #define	BOTH		3
 
+#define	MSG_GOT_WAIT_BLOCKED	4
+
 #define	TT_DAE		2
 
 #define	TT_SCNR_exit		1
@@ -42,10 +44,14 @@ struct	msg_got {
 	u8	*buf;
 	size_t	buf_size;
 	pid_t	sender;
+	u8	status;
 };
 
 struct	task {
 	struct sfr	sfr;
+	//struct task	*cld_lst;
+	//struct task	*next_cld;
+	//struct task	*parent;
 	u16	flags;
 	u16	status;
 	struct msg_got	msg_got;

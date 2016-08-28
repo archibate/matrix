@@ -12,13 +12,13 @@ char	*strcpy(
 		const char	*src
 	       )
 {
-	__asm__ (	".0:"
+	__asm__ (	"0:"
 			"lodsb\n"
 			"testb	%%al, %%al\n"
-			"jz	.1\n"
+			"jz	1f\n"
 			"stosb\n"
-			"jmp	.0\n"
-			".1:" ::
+			"jmp	0b\n"
+			"1:" ::
 			"D" (dst),
 			"S" (src)
 		);
@@ -31,17 +31,17 @@ char	*strcat(
 		const char	*src
 	       )
 {
-	__asm__ (	".2:"
+	__asm__ (	"2:"
 			"lodsb\n"
 			"testb	%%al, %%al\n"
-			"jnz	.2\n"
-			".3:"
+			"jnz	2b\n"
+			"3:"
 			"lodsb\n"
 			"testb	%%al, %%al\n"
-			"jz	.3\n"
+			"jz	3b\n"
 			"stosb\n"
-			"jmp	.4\n"
-			".4:" ::
+			"jmp	4f\n"
+			"4:" ::
 			"D" (dst),
 			"S" (src)
 		);
@@ -54,10 +54,10 @@ size_t	strlen(
 	      )
 {
 	char	*end;
-	__asm__ (	".5:"
+	__asm__ (	"5:"
 			"lodsb\n"
 			"testb	%%al, %%al\n"
-			"jnz	.5\n" :
+			"jnz	5b\n" :
 			"=S" (end) :
 			"S" (str)
 		);

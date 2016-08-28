@@ -6,6 +6,7 @@
 #include	"../lib/memory.h"
 #include	"../tty/ttyio.h"
 #include	"../fs/fs.h"
+#include	"../asf.h"
 #include	"../lib/string.h"
 
 
@@ -36,8 +37,11 @@ void	init_tt()
 	tss0->iomap_ofs	= sizeof(struct tss);
 	tss0->iomap_end	= 0xFF;
 	__asm__ ("ltr	%%ax"
+#ifdef	_TCC
+			:: "a" (TSS_DESC_SEL));
+#else
 			:: "ax" (TSS_DESC_SEL));
-	//__asm__ ("cli;hlt");
+#endif
 	
 	//task_ready = &tasks[0];
 	/*memset(&tasks[0], 0, sizeof(struct task));
@@ -122,9 +126,9 @@ void	init_tt()
 	tasks[2].sfr.eip = (r_t) task_c_main;
 	tasks[2].sfr.efl = 0x3202;
 	task_enable(&tasks[2]);*/
-	init_task(&tasks[TT_DAE], USER_CODE_SEL, (r_t) tt_daemon,
+	/*init_task(&tasks[TT_DAE], USER_CODE_SEL, (r_t) tt_daemon,
 			USER_DATA_SEL, (r_t) tt_daemon_stack +
-			sizeof(tt_daemon_stack));
+			sizeof(tt_daemon_stack));*/
 	init_task(&tasks[FS_DAE], USER_CODE_SEL, (r_t) fs_daemon,
 			USER_DATA_SEL, (r_t) fs_daemon_stack +
 			sizeof(fs_daemon_stack));
@@ -138,25 +142,44 @@ void	init_tt()
 void	tt_daemon()
 {
 	pid_t	sender;
-	static int	recv_buf[8];
-	static size_t	recv_size;
+	static int	recv_buf[4];
+	static int	send_buf[2];
+	size_t	recv_size;
+	size_t	send_size;
+	struct task	*task;
 	strcpy(task_ready->name, "TT");
 
 	for (;;) {
 		memset(recv_buf, 0, recv_size = sizeof(recv_buf));
-		sender = tt_recvs(0, recv_buf, &recv_size);
 
-		switch (recv_buf[0]) {
-		case TT_SCNR_exit:
-			task_disable(tasks + sender);
-			continue;
-		case TT_SCNR_fork:
-			continue;
-		default:
-			printk("System Call Error : %d is not an index of TT SysCall",
-					recv_buf[0]);
-			continue;
-		}
+		sender = tt_recvs(0, recv_buf, &recv_size);
+		/*switch (sender) {
+		case 1:
+			send_buf[0] = 0;
+			send_buf[1] = recv_buf[1];	/ * Timer Signal Boardcast * /
+			for (int i = 0; i < TASK_MAX; ++i) {
+				if (task_empty(&tasks[i]))
+					continue;
+				if (task_unblocked(&tasks[i]))
+					continue;
+				send_size = sizeof(send_buf);
+				tt_sends(i, send_buf, &send_size);
+			}
+			break;
+		default:*/
+			switch (recv_buf[0]) {
+			case TT_SCNR_exit:
+				task_disable(tasks + sender);
+				continue;
+			case TT_SCNR_fork:
+				continue;
+			default:
+				printk("System Call Error : %d is not an index of TT SysCall",
+						recv_buf[0]);
+				panic("sender = %d", sender);
+				continue;
+			}
+		/*}*/
 	}
 }
 
@@ -273,21 +296,22 @@ static u16	*next_abc_p	= VRAM + 10;
 void	task_a_main()
 {
 	static char	send_buf[64] = "Secretly love you... \x03\0";
-	size_t	sended_size = sizeof(send_buf);
+	size_t	sended_size = strlen(send_buf);
 	strcpy(task_ready->name, "task_a");
 	printk("I'm sending message to Task B : %s", send_buf);
-	while (tt_sends(9, send_buf, &sended_size));	/* Task B */
+	//while (tt_sends(9, send_buf, &sended_size));	/* Task B */
+	tt_sends(9, send_buf, &sended_size);	/* Task B */
 	//panic("DDSDSAFsfadsasrDFSf3452345sdfsf");
 	printk("sended size is %d, Oh no, she do not has enough buf...",
 			sended_size);
-	static int	scargs[8] = {0};
+	static int	scargs[1] = {0};
 	static size_t	scasize = sizeof(scargs[8]);
-	/*scargs[0] = FS_SCNR_dev_open;
+	scargs[0] = FS_SCNR_open;
 	scasize = 4;
-	while (tt_sends(FS_DAE, &scargs, &scasize));
+	while (tt_sends(FS_DAE, scargs, &scasize));
 	scargs[0] = TT_SCNR_exit;
 	scasize = 4;
-	while (tt_sends(TT_DAE, &scargs, &scasize));*/
+	while (tt_sends(TT_DAE, scargs, &scasize));/**/
 	for (;;) {
 		//task_ready = &tasks[1];
 		//VRAM[5] = 0x0C03;
@@ -300,7 +324,7 @@ void	task_a_main()
 			next_abc_p = VRAM;
 			//clean_screen();
 		}
-		for (int times = 0; times < 1000; times++);
+		for (int times = 0; times < 100; times++);
 		//delay_down(100);
 		//printstr("task A running!\r\n", 0x07);
 	}
@@ -318,6 +342,7 @@ void	task_b_main()
 	printk("I recived message from PID %d : %s", sender_pid, recv_buf);
 	printk("?? Sorry, what do you mean?");
 	printk("recived size is %d", recved_size);
+	print_task_table();
 	for (;;) {
 		//task_ready = &tasks[0];
 		//VRAM[5] = 0x0C03;
@@ -330,7 +355,7 @@ void	task_b_main()
 			next_abc_p = VRAM;
 			//clean_screen();
 		}
-		for (int times = 0; times < 1000; times++);
+		for (int times = 0; times < 100; times++);
 		/*for (int times = 0; times < 10000000; times++);*/
 		/*clean_screen();*/
 		/*memset_word(VRAM, 0x110A, TTY_XS * TTY_YS);*/
@@ -365,7 +390,7 @@ void	task_c_main()
 			next_abc_p = VRAM;
 			//clean_screen();
 		}
-		for (int times = 0; times < 1000; times++);
+		for (int times = 0; times < 100; times++);
 		//delay_down(100);
 		//printstr("task C running!\r\n", 0x07);
 	}

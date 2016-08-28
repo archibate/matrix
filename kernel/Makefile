@@ -47,4 +47,10 @@ $(FS) : $(wildcard fs/*)
 clean :
 	$(RM) $(KERNEL_OBJS) $(KERNEL_ELF) $(KERNEL_BIN) $(KERNEL_MAP)
 	$(MAKE) -r clean -C init/
+	$(MAKE) -r clean -C srv/
+	$(MAKE) -r clean -C tt/
+	$(MAKE) -r clean -C mm/
+	$(MAKE) -r clean -C tty/
+	$(MAKE) -r clean -C lib/
+	$(MAKE) -r clean -C fs/
 

@@ -244,11 +244,12 @@ void	isr_int0x20(	/* timer IRQ */
 				 * 保存 task_ready 进程的栈帧，
 				 * 以便下次 tt_iret()
 				 */
-	//printk("timer IRQ called");//OAOBODOC[15~OSOR[18~[M oK
+	//printk("timer IRQ called");//OAOBODOC[15~OSOR[18~[M oK<LeftMouse><LeftMouse><LeftMouse><F5>ìêç
 	//print_task_table();
 	schedule();	/* schedule() 会将 task_ready 设为下一个进程 */
 	//if(NULL==schedule()){print_task_table();panic("ERROR IN SCHEDULE!!!");}
 	//print_task_table();
+	/* call TT daemon to boardcast timer signal */
 	io_outb(0x60, 0x20);
 	tt_iret();
 }
@@ -334,39 +335,57 @@ void	isr_int0x2f()
 void	isr_int0x30(
 		struct sfr	sfr)
 {
+#define	maxof(a, b)	((a) > (b) ? (a) : (b))
+#define	minof(a, b)	((a) < (b) ? (a) : (b))
 	//printk("INT 30 : System Call");
 	extern struct task	*task_ready;
 	extern struct task	*tasks;
+	size_t	copy_size;
+	save_stack_frame(&sfr);
 	switch (sfr.eax) {
 	case 1:	/* SENDS */
-		if (!sfr.ecx)
-			return;
-		//if (task_blocked(&tasks[sfr.edx])) {
-#define	maxof(a, b)	((a) > (b) ? (a) : (b))
-#define	minof(a, b)	((a) < (b) ? (a) : (b))
-		if (task_ready == &tasks[sfr.edx]) {
-			//printk("System Call Error : SEND : reciver is same one as sender");
-			task_ready->sfr.eax = -1;
-			return;
-		}
-		if (task_empty(&tasks[sfr.edx])) {
+		if (task_empty(&tasks[sfr.edx]) || task_ready == &tasks[sfr.edx]
+				|| sfr.edx >= TASK_MAX || !sfr.edx) {
 			//printk("System Call Error : SEND : target task not exist");
 			task_ready->sfr.eax = -1;
-			return;
+			break;
 		}
-		if (tasks[sfr.edx].msg_got.buf == NULL)	{	/* target task not waiting for recv */
+		if (task_unblocked(&tasks[sfr.edx])) {
+			/* target task not blocked (not in recv) */
+			block_task(task_ready);		/* block sender until reciver goes into block (use recv), we wake sender up */
+			//memcpy(tasks[sfr.edx].msg_got.buf, (u8 *) sfr.ebx, copy_size);	/***[#COE!pageman] */
+			tasks[sfr.edx].msg_got.buf = (u8 *) sfr.ebx;
+			tasks[sfr.edx].msg_got.buf_size = sfr.ecx;
+			tasks[sfr.edx].msg_got.sender = task_ready - tasks;
+			/*tasks[sfr.edx].msg_got.status |= MSG_GOT_WAIT_BLOCKED;	/ *
+										 * tell reciver->msg_got we are waiting for him until he is blocked
+										 * when reciver called tt_recv(), he can recive the waiting message
+										 */
+			schedule();
+			tt_iret();
+			/*if (task_unblocked(&tasks[sfr.edx])) {
+				task_ready->sfr.eax = -1;
+				break;
+			}*/
+		}
+//sends_label_1:
+		if (tasks[sfr.edx].msg_got.buf == NULL)	{	/* target task buffer NULL */
 			//printk("System Call Error : SEND : target task not waiting for recive");
-			task_ready->sfr.eax = -2;
-			return;
+			task_ready->sfr.eax = -1;
+			break;
 		}
 		if (tasks[sfr.edx].msg_got.sender) {	/* target task specified sender */
 			if (tasks[sfr.edx].msg_got.sender != task_ready - tasks) {
 				//printk("System Call Error : SEND : target task specified sender is not you");
-				task_ready->sfr.eax = -3;
-				return;
+				task_ready->sfr.eax = -1;
+				break;
 			}
 		}
-		size_t	copy_size = minof(sfr.ecx, tasks[sfr.edx].msg_got.buf_size);
+		if (!sfr.ecx) {		/* zero send size given */
+			task_ready->sfr.eax = -1;
+			break;
+		}
+		copy_size = minof(sfr.ecx, tasks[sfr.edx].msg_got.buf_size);
 		memcpy(tasks[sfr.edx].msg_got.buf, (u8 *) sfr.ebx, copy_size);	/***[#COE!pageman] */
 		tasks[sfr.edx].msg_got.sender = task_ready - tasks;
 		//if (task_blocked(&tasks[sfr.edx])) {
@@ -379,30 +398,83 @@ void	isr_int0x30(
 										 */
 		tasks[sfr.edx].msg_got.buf = NULL;
 		tasks[sfr.edx].msg_got.sender = 0;
-		task_ready->sfr.eax = 0;
-		tt_iret();
+		task_ready->sfr.eax = 0;	/* Exit Status : Success */
 		/*if (task_unblocked(&tasks[sfr.ebx]))
 		  printk("Unblocked task!!!");*/
 		//}
-		return;
+		break;
 	case 2:	/* RECVS */
-		if (!sfr.ecx)
-			return;
-		save_stack_frame(&sfr);
+		if (!sfr.ecx) {		/* zero send size given */
+			task_ready->sfr.eax = 0;	/* Exit Status : Failed */
+			break;
+		}
+		if (task_empty(&tasks[sfr.edx]) || task_ready == &tasks[sfr.edx]
+				|| sfr.edx >= TASK_MAX) {
+			task_ready->sfr.eax = 0;
+			break;
+		}
+		/*if (sfr.edx >= TASK_MAX || task_empty(&tasks[sfr.edx])) {
+			task_ready->sfr.eax = 0;
+			break;
+		}*/
+		if (task_ready->msg_got.buf != NULL) {	/* an message is waiting for you! please check! */
+			copy_size = minof(sfr.ecx, task_ready->msg_got.buf_size);
+			memcpy((u8 *) sfr.ebx, task_ready->msg_got.buf, copy_size);
+			if (task_empty(&tasks[task_ready->msg_got.sender]) || task_ready->msg_got.sender > TASK_MAX
+					|| !task_ready->msg_got.sender) {
+				task_ready->sfr.eax = 0;
+				break;
+			}
+			unblock_task(&tasks[task_ready->msg_got.sender]);	/* I recived it, you can unblock now */
+			tasks[task_ready->msg_got.sender].sfr.eax = 0;		/* sender can get the return values */
+			tasks[task_ready->msg_got.sender].sfr.ecx = copy_size;
+			task_ready->sfr.eax = task_ready->msg_got.sender;
+			task_ready->sfr.ecx = copy_size;
+			break;
+		}
 		block_task(task_ready);
 		task_ready->msg_got.buf = (u8 *) sfr.ebx;
 		task_ready->msg_got.buf_size = sfr.ecx;
-		task_ready->msg_got.sender = sfr.edx;
+		task_ready->msg_got.sender = sfr.edx;	/* while given EDX is 0, recive from any task */
 		/*if (task_blocked(task_ready))
 			printk("Blocked task!!!");*/
 		//print_task_table();
 		schedule();
 		tt_iret();
-		return;
+		break;
+		//////////////uncmplt
+#if	0
 	case 3:	/* BOTHS */
-		return;
+		if (task_blocked(&tasks[sfr.edx])) {	/* target task is currently waiting for recv */
+			if (task_empty(&tasks[sfr.edx]) || sfr.edx >= TASK_MAX) {
+				task_ready->sfr.eax = 0;	/* Exit Status : Failed */
+				break;
+			}
+			if (tasks[sfr.edx].msg_got.buf != NULL) {
+				task_ready->sfr.eax = 0;
+				break;
+			}
+			if (tasks[sfr.edx].msg_got.sender) {
+				if (tasks[sfr.edx].msg_got.sender != task_ready - tasks) {
+					task_ready->sfr.eax = 0;
+					break;
+				}
+			}
+			if (!sfr.ecx) {
+				task_ready->sfr.eax = 0;
+				break;
+			}
+			size_t	copy_size = minof(sfr.ecx, tasks[sfr.edx].msg_got.buf_size);
+			memcpy(tasks[sfr.edx].msg_got.buf, (u8 *) sfr.ebx, copy_size);
+			break;
+		}		/* target task is not blocking, we wake him up */
+		block_task(task_ready);
+		unblock_task(&tasks[sfr.edx]);
+		break;
+#endif
 		/* sendrecv(MM_PID, SEND, MM_SR_ALLOC) */
 	}
+	tt_iret();	/* This will refresh registers in task_ready */
 }
 
 

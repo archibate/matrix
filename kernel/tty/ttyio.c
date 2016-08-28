@@ -123,7 +123,11 @@ static inline u16	get_cur_sub()
 			"outb	%%al, %%dx\n"
 			"incw	%%dx\n"	
 			"inb	%%dx, %%al\n"
+#ifdef	_TCC
+			: "=a" (ret) : );
+#else
 			: "=ax" (ret) : );
+#endif
 #ifndef	__SINC__
 	return	ret;
 #endif
@@ -145,7 +149,11 @@ static inline void	set_cur_sub(
 			"incw	%%dx\n"
 			"movb	%%ah, %%al\n"
 			"outb	%%al, %%dx\n"
+#ifdef	_TCC
+			:: "c" (cur));
+#else
 			:: "cx" (cur));
+#endif
 
 	//cur_pos = cur;
 }

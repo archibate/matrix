@@ -6,8 +6,13 @@ static inline u8	io_inb(
 {
 	u8	data;
 	__asm__ ("inb	%%dx, %%al" :
+#ifdef	_TCC
+			"=a" (data)
+			: "d" (port));
+#else
 			"=al" (data)
 			: "dx" (port));
+#endif
 	return	data;
 }
 
@@ -17,8 +22,13 @@ static inline void	io_outb(
 		u16	port)
 {
 	__asm__ ("outb	%%al, %%dx" ::
+#ifdef	_TCC
+			"a" (data),
+			"d" (port));
+#else
 			"al" (data),
 			"dx" (port));
+#endif
 }
 
 
@@ -28,7 +38,11 @@ static inline void	io_insb(
 		size_t	cnt)
 {
 	__asm__ ("cld\nrep\ninsb" ::
+#ifdef	_TCC
+			"d" (port),
+#else
 			"dx" (port),
+#endif
 			"D" (buf),
 			"c" (cnt));
 }
@@ -40,7 +54,11 @@ static inline void	io_insl(
 		size_t	cnt)
 {
 	__asm__ ("cld\nrep\ninsl" ::
+#ifdef	_TCC
+			"d" (port),
+#else
 			"dx" (port),
+#endif
 			"D" (buf),
 			"c" (cnt));
 }
@@ -52,7 +70,11 @@ static inline void	io_outsb(
 		size_t	cnt)
 {
 	__asm__ ("cld\nrep\noutsb" ::
+#ifdef	_TCC
+			"d" (port),
+#else
 			"dx" (port),
+#endif
 			"S" (buf),
 			"c" (cnt));
 }
@@ -64,20 +86,24 @@ static inline void	io_outsl(
 		size_t	cnt)
 {
 	__asm__ ("cld\nrep\noutsl" ::
+#ifdef	_TCC
+			"d" (port),
+#else
 			"dx" (port),
+#endif
 			"S" (buf),
 			"c" (cnt));
 }
 
 
-static inline void	io_outw(
+/*static inline void	io_outw(
 		u16	data,
 		u16	port)
 {
 	__asm__ ("outw	%%ax, %%dx" ::
 			"ax" (data),
 			"dx" (port));
-}
+}*/
 
 
 static inline void	io_hlt()
