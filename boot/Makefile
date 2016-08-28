@@ -1,7 +1,6 @@
-SEC_TEXT_ORG	=0
-
  include	../Makefile.header
 
+LD_FLAGS	+=-Ttext 0
 
 target : boot.bin
 

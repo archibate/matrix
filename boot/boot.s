@@ -180,8 +180,6 @@ dest_sel:
 .byte	0x55, 0xAA
 
 setup:
-	#cli
-	#hlt
 	#int	$0x19
 	movw	%cs, %ax
 	movw	%ax, %ds
@@ -214,7 +212,7 @@ read_kern:
 jump_into_kern:
 	movw	$msg_jump, %si
 	call	print
-	ljmp	$0x0800, $0
+	ljmp	$0, $0x8000
 	#jmp	halt
 
 poff:	movw	$0x5301, %ax

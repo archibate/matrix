@@ -338,7 +338,7 @@ void	isr_int0x30(
 	extern struct task	*task_ready;
 	extern struct task	*tasks;
 	switch (sfr.eax) {
-	case 1:	/* SEND */
+	case 1:	/* SENDS */
 		if (!sfr.ecx)
 			return;
 		//if (task_blocked(&tasks[sfr.edx])) {
@@ -385,7 +385,7 @@ void	isr_int0x30(
 		  printk("Unblocked task!!!");*/
 		//}
 		return;
-	case 2:	/* RECV */
+	case 2:	/* RECVS */
 		if (!sfr.ecx)
 			return;
 		save_stack_frame(&sfr);
@@ -399,7 +399,7 @@ void	isr_int0x30(
 		schedule();
 		tt_iret();
 		return;
-	case 3:	/* BOTH */
+	case 3:	/* BOTHS */
 		return;
 		/* sendrecv(MM_PID, SEND, MM_SR_ALLOC) */
 	}

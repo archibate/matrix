@@ -43,7 +43,7 @@ CC_OPTIONS	=-pedantic -W -nostdlib -nostdinc -fomit-frame-pointer \
 AS_FLAGS	=-a $(INCLUDE_FLAGS)
 CC_FLAGS	=-c $(CC_OPTIZIME) $(DEBUG_FLAGS) $(CC_OPTIONS) \
 		 $(CC_WARNNINGS) $(CC_DEFINES) $(INCLUDE_FLAGS)
-LD_FLAGS	=-N -e _start -Ttext 0 $(DEBUG_FLAG)
+LD_FLAGS	=-N -e _start $(DEBUG_FLAG)
 
 
 %.s.o : %.s

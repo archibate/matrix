@@ -51,13 +51,17 @@ void	init_tt()
 	tasks[0].sfr.efl = 0x3202;
 	task_enable(&tasks[0]);*//*9d69*/
 	init_task(&tasks[0], USER_CODE_SEL, (r_t) task_idle_main,
-			USER_DATA_SEL, (r_t) task_idle_stack);
+			USER_DATA_SEL, (r_t) task_idle_stack +
+			sizeof(task_idle_stack));
 	init_task(&tasks[8], USER_CODE_SEL, (r_t) task_a_main,
-			USER_DATA_SEL, (r_t) task_a_stack + 4096);
+			USER_DATA_SEL, (r_t) task_a_stack +
+			sizeof(task_a_stack));
 	init_task(&tasks[9], USER_CODE_SEL, (r_t) task_b_main,
-			USER_DATA_SEL, (r_t) task_b_stack + 4096);
+			USER_DATA_SEL, (r_t) task_b_stack +
+			sizeof(task_b_stack));
 	init_task(&tasks[10], USER_CODE_SEL, (r_t) task_c_main,
-			USER_DATA_SEL, (r_t) task_c_stack + 4096);
+			USER_DATA_SEL, (r_t) task_c_stack +
+			sizeof(task_c_stack));
 	/*memset(&tasks[1], 0, sizeof(struct task));
 	tasks[1].sfr.cs = USER_CODE_SEL;
 	tasks[1].sfr.ds = tasks[1].sfr.ss
@@ -119,9 +123,11 @@ void	init_tt()
 	tasks[2].sfr.efl = 0x3202;
 	task_enable(&tasks[2]);*/
 	init_task(&tasks[TT_DAE], USER_CODE_SEL, (r_t) tt_daemon,
-			USER_DATA_SEL, (r_t) tt_daemon_stack + 8192);
+			USER_DATA_SEL, (r_t) tt_daemon_stack +
+			sizeof(tt_daemon_stack));
 	init_task(&tasks[FS_DAE], USER_CODE_SEL, (r_t) fs_daemon,
-			USER_DATA_SEL, (r_t) fs_daemon_stack + 8192);
+			USER_DATA_SEL, (r_t) fs_daemon_stack +
+			sizeof(fs_daemon_stack));
 	task_ready = tasks;	/* task_idle */
 	//printk("task_b_stack = %p", (r_t) task_b_stack);
 	//panic("hi");

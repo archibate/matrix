@@ -1,6 +1,7 @@
  include	../Makefile.header
 
 LD_FLAGS	+=-Ttext 0x8000
+
 INIT		=init/init.a
 SRV		=srv/srv.a
 TT		=tt/tt.a

@@ -3,7 +3,7 @@
 .global	_start
 
 _start:		# we are loaded at 0x1000:0x0000, still real mode now
-	jmp	rmode_start	# our boot loader do NOT set pmode
+	ljmp	$0, $rmode_start	# our boot loader do NOT set pmode
 
 .code32
 pmode_start:			# now, we are in 0x8000:0x00010000 in pmode
